@@ -1,11 +1,615 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DevWebGI4</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SmartHome — Maison Connectée</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --cream: #F5F0E8;
+      --dark: #1A1A2E;
+      --accent: #E8A838;
+      --accent2: #2ECC8A;
+      --muted: #6B6B80;
+      --card-bg: #FFFFFF;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background-color: var(--cream);
+      color: var(--dark);
+      overflow-x: hidden;
+    }
+
+    /* ── NAV ── */
+    nav {
+      background: var(--dark);
+      padding: 1.1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .nav-logo {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.5rem;
+      color: var(--accent);
+      letter-spacing: -0.5px;
+    }
+
+    .nav-logo span { color: #fff; }
+
+    .nav-links a {
+      color: rgba(255,255,255,0.75);
+      text-decoration: none;
+      margin-left: 1.8rem;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover { color: var(--accent); }
+
+    .btn-nav {
+      background: var(--accent);
+      color: var(--dark) !important;
+      font-weight: 600 !important;
+      padding: 0.45rem 1.2rem;
+      border-radius: 50px;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 88vh;
+      display: flex;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-bg {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, var(--dark) 55%, #16213E 100%);
+      z-index: 0;
+    }
+
+    /* decorative circles */
+    .hero-bg::before {
+      content: '';
+      position: absolute;
+      width: 520px; height: 520px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(232,168,56,0.18) 0%, transparent 70%);
+      top: -120px; right: -100px;
+    }
+
+    .hero-bg::after {
+      content: '';
+      position: absolute;
+      width: 340px; height: 340px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(46,204,138,0.14) 0%, transparent 70%);
+      bottom: -80px; left: 40px;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 1;
+      padding: 3rem 2rem;
+      max-width: 680px;
+    }
+
+    .hero-tag {
+      display: inline-block;
+      background: rgba(232,168,56,0.15);
+      color: var(--accent);
+      border: 1px solid rgba(232,168,56,0.4);
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      padding: 0.35rem 0.9rem;
+      border-radius: 50px;
+      margin-bottom: 1.5rem;
+    }
+
+    .hero h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(2.6rem, 5vw, 4rem);
+      color: #fff;
+      line-height: 1.1;
+      margin-bottom: 1.3rem;
+    }
+
+    .hero h1 em {
+      font-style: normal;
+      color: var(--accent);
+    }
+
+    .hero p {
+      color: rgba(255,255,255,0.65);
+      font-size: 1.05rem;
+      line-height: 1.7;
+      margin-bottom: 2.2rem;
+      max-width: 540px;
+    }
+
+    .hero-btns {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .btn-primary-custom {
+      background: var(--accent);
+      color: var(--dark);
+      font-weight: 700;
+      padding: 0.8rem 2rem;
+      border-radius: 50px;
+      border: none;
+      text-decoration: none;
+      font-size: 0.95rem;
+      transition: transform 0.2s, box-shadow 0.2s;
+      display: inline-block;
+    }
+
+    .btn-primary-custom:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(232,168,56,0.35);
+      color: var(--dark);
+    }
+
+    .btn-outline-custom {
+      background: transparent;
+      color: #fff;
+      font-weight: 600;
+      padding: 0.8rem 2rem;
+      border-radius: 50px;
+      border: 1.5px solid rgba(255,255,255,0.3);
+      text-decoration: none;
+      font-size: 0.95rem;
+      transition: border-color 0.2s, background 0.2s;
+      display: inline-block;
+    }
+
+    .btn-outline-custom:hover {
+      border-color: rgba(255,255,255,0.7);
+      background: rgba(255,255,255,0.06);
+      color: #fff;
+    }
+
+    /* hero right panel — device mockup */
+    .hero-visual {
+      position: relative;
+      z-index: 1;
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 2rem;
+    }
+
+    .device-card {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 20px;
+      padding: 1.6rem;
+      backdrop-filter: blur(12px);
+      width: 280px;
+      animation: floatCard 4s ease-in-out infinite;
+    }
+
+    @keyframes floatCard {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .device-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .device-row:last-child { border-bottom: none; }
+
+    .device-icon {
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem;
+    }
+
+    .device-name {
+      color: rgba(255,255,255,0.85);
+      font-size: 0.85rem;
+      font-weight: 500;
+      flex: 1;
+      margin-left: 0.8rem;
+    }
+
+    .device-status {
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.2rem 0.6rem;
+      border-radius: 50px;
+    }
+
+    .status-on  { background: rgba(46,204,138,0.2); color: var(--accent2); }
+    .status-off { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.4); }
+
+    /* ── SEARCH ── */
+    .search-section {
+      background: var(--dark);
+      padding: 2.5rem 2rem;
+    }
+
+    .search-section h2 {
+      font-family: 'DM Serif Display', serif;
+      color: #fff;
+      font-size: 1.3rem;
+      margin-bottom: 1.2rem;
+      text-align: center;
+    }
+
+    .search-bar {
+      display: flex;
+      gap: 0.8rem;
+      flex-wrap: wrap;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    .search-bar input,
+    .search-bar select {
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: #fff;
+      padding: 0.7rem 1.1rem;
+      border-radius: 10px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      flex: 1;
+      min-width: 160px;
+    }
+
+    .search-bar input::placeholder { color: rgba(255,255,255,0.35); }
+
+    .search-bar select option { background: var(--dark); }
+
+    .search-bar input:focus,
+    .search-bar select:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .btn-search {
+      background: var(--accent);
+      color: var(--dark);
+      font-weight: 700;
+      padding: 0.7rem 1.8rem;
+      border-radius: 10px;
+      border: none;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    .btn-search:hover { opacity: 0.88; }
+
+    /* ── FEATURES ── */
+    .features {
+      padding: 5rem 2rem;
+      background: var(--cream);
+    }
+
+    .section-label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.6rem;
+    }
+
+    .section-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(1.8rem, 3vw, 2.6rem);
+      color: var(--dark);
+      margin-bottom: 1rem;
+    }
+
+    .section-sub {
+      color: var(--muted);
+      font-size: 1rem;
+      line-height: 1.7;
+      max-width: 500px;
+    }
+
+    .feat-card {
+      background: var(--card-bg);
+      border-radius: 18px;
+      padding: 2rem 1.8rem;
+      height: 100%;
+      border: 1px solid rgba(0,0,0,0.06);
+      transition: transform 0.25s, box-shadow 0.25s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .feat-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: var(--accent);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.3s;
+    }
+
+    .feat-card:hover { transform: translateY(-4px); box-shadow: 0 12px 36px rgba(0,0,0,0.1); }
+    .feat-card:hover::before { transform: scaleX(1); }
+
+    .feat-icon {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+    }
+
+    .feat-card h3 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.2rem;
+      color: var(--dark);
+      margin-bottom: 0.6rem;
+    }
+
+    .feat-card p {
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.65;
+    }
+
+    /* ── STATS ── */
+    .stats-section {
+      background: var(--dark);
+      padding: 4rem 2rem;
+    }
+
+    .stat-box {
+      text-align: center;
+      padding: 1.5rem;
+    }
+
+    .stat-number {
+      font-family: 'DM Serif Display', serif;
+      font-size: 3rem;
+      color: var(--accent);
+      display: block;
+    }
+
+    .stat-label {
+      color: rgba(255,255,255,0.55);
+      font-size: 0.88rem;
+      margin-top: 0.3rem;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      background: #111122;
+      color: rgba(255,255,255,0.4);
+      text-align: center;
+      padding: 1.8rem;
+      font-size: 0.85rem;
+    }
+
+    footer span { color: var(--accent); }
+
+    /* ── RESPONSIVE ── */
+    .hero-wrap {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+
+    @media (max-width: 768px) {
+      .hero-wrap { flex-direction: column; padding: 2rem 1rem; }
+      .hero-content { max-width: 100%; }
+      .hero-visual { display: none; }
+      .nav-links { display: none; }
+    }
+  </style>
 </head>
 <body>
-    
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">Smart<span>Home</span></div>
+  <div class="nav-links">
+    <a href="#">Accueil</a>
+    <a href="#">Objets</a>
+    <a href="#">Services</a>
+    <a href="login.html" class="btn-nav">Connexion</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-wrap">
+    <div class="hero-content">
+      <div class="hero-tag">🏠 Maison Intelligente — IoT</div>
+      <h1>Votre maison,<br/><em>intelligente</em><br/>et connectée.</h1>
+      <p>Gérez vos objets connectés, surveillez votre consommation et contrôlez votre maison depuis une seule plateforme intuitive.</p>
+      <div class="hero-btns">
+        <a href="login.html" class="btn-primary-custom">Commencer →</a>
+        <a href="login.html?mode=register" class="btn-outline-custom">S'inscrire</a>
+      </div>
+    </div>
+
+    <!-- DEVICE MOCKUP -->
+    <div class="hero-visual">
+      <div class="device-card">
+        <p style="color:rgba(255,255,255,0.4); font-size:0.72rem; text-transform:uppercase; letter-spacing:1px; margin-bottom:0.8rem;">Tableau de bord</p>
+        <div class="device-row">
+          <div class="device-icon" style="background:rgba(232,168,56,0.15)">💡</div>
+          <div class="device-name">Lumières Salon</div>
+          <span class="device-status status-on">ON</span>
+        </div>
+        <div class="device-row">
+          <div class="device-icon" style="background:rgba(46,204,138,0.12)">🌡️</div>
+          <div class="device-name">Thermostat — 21°C</div>
+          <span class="device-status status-on">ON</span>
+        </div>
+        <div class="device-row">
+          <div class="device-icon" style="background:rgba(255,255,255,0.06)">🔒</div>
+          <div class="device-name">Porte Principale</div>
+          <span class="device-status status-off">Fermée</span>
+        </div>
+        <div class="device-row">
+          <div class="device-icon" style="background:rgba(255,255,255,0.06)">🫧</div>
+          <div class="device-name">Lave-linge</div>
+          <span class="device-status status-off">OFF</span>
+        </div>
+        <div class="device-row">
+          <div class="device-icon" style="background:rgba(46,204,138,0.12)">📷</div>
+          <div class="device-name">Caméra Jardin</div>
+          <span class="device-status status-on">Live</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SEARCH -->
+<section class="search-section">
+  <h2>🔍 Rechercher un objet connecté</h2>
+  <div class="search-bar">
+    <input type="text" placeholder="Nom ou description (ex: thermostat, caméra…)" />
+    <select>
+      <option value="">— Type d'objet —</option>
+      <option>Thermostat</option>
+      <option>Caméra</option>
+      <option>Éclairage</option>
+      <option>Aspirateur robot</option>
+      <option>Lave-linge</option>
+      <option>Lave-vaisselle</option>
+      <option>Capteur</option>
+    </select>
+    <select>
+      <option value="">— État —</option>
+      <option>Actif</option>
+      <option>Inactif</option>
+      <option>Connecté</option>
+      <option>Déconnecté</option>
+    </select>
+    <button class="btn-search">Rechercher</button>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features">
+  <div style="max-width:1100px; margin:0 auto;">
+    <div class="row align-items-center mb-5">
+      <div class="col-md-6">
+        <p class="section-label">Fonctionnalités</p>
+        <h2 class="section-title">Tout ce dont votre maison a besoin</h2>
+        <p class="section-sub">Une plateforme centralisée pour piloter, surveiller et optimiser chaque aspect de votre habitat connecté.</p>
+      </div>
+    </div>
+    <div class="row g-4">
+      <div class="col-md-4">
+        <div class="feat-card">
+          <div class="feat-icon">💡</div>
+          <h3>Éclairage intelligent</h3>
+          <p>Contrôlez vos lumières à distance, programmez des scénarios et réduisez votre consommation électrique.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="feat-card">
+          <div class="feat-icon">🌡️</div>
+          <h3>Gestion thermique</h3>
+          <p>Réglez vos thermostats intelligents, visualisez les courbes de température et automatisez le chauffage.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="feat-card">
+          <div class="feat-icon">🔒</div>
+          <h3>Sécurité & Accès</h3>
+          <p>Surveillez les entrées, gérez les accès et recevez des alertes en temps réel depuis n'importe où.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="feat-card">
+          <div class="feat-icon">⚡</div>
+          <h3>Suivi énergétique</h3>
+          <p>Analysez la consommation de chaque appareil et identifiez les économies potentielles.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="feat-card">
+          <div class="feat-icon">📊</div>
+          <h3>Rapports & Stats</h3>
+          <p>Générez des rapports détaillés sur l'utilisation des objets connectés et exportez vos données.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="feat-card">
+          <div class="feat-icon">🤖</div>
+          <h3>Automatisation</h3>
+          <p>Créez des règles intelligentes pour que vos appareils se coordonnent automatiquement.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<section class="stats-section">
+  <div class="row" style="max-width:900px; margin:0 auto;">
+    <div class="col-6 col-md-3">
+      <div class="stat-box">
+        <span class="stat-number">24</span>
+        <p class="stat-label">Objets connectés</p>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-box">
+        <span class="stat-number">4</span>
+        <p class="stat-label">Types d'utilisateurs</p>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-box">
+        <span class="stat-number">-32%</span>
+        <p class="stat-label">Conso. énergie</p>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-box">
+        <span class="stat-number">99%</span>
+        <p class="stat-label">Disponibilité</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <p>© 2025-2026 <span>SmartHome</span> — Projet ING1 CY Tech &nbsp;·&nbsp; Plateforme IoT intelligente</p>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
