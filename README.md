@@ -1,1 +1,1 @@
-# DevWebGI4
+# DevWebGI4 chips
