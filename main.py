@@ -1,6 +1,11 @@
 import flask
+import utils
+import flask_socketio
 
 app = flask.Flask(__name__, static_url_path='/static')
+app.teardown_appcontext(utils.closeDB)
+
+socket = flask_socketio.SocketIO(app, async_mode='gevent')
 
 @app.route('/')
 def home():
@@ -17,4 +22,7 @@ def login():
     
     return flask.send_file('static/html/home.html')
 
-app.run(port = 5500)
+with app.app_context():
+    utils.initDB()
+
+socket.run(app, port = 5500)
