@@ -1,21 +1,20 @@
-from flask import Flask, render_template, request, redirect, url_for, session
+import flask
 
-app = Flask(__name__)
-app.secret_key = "secret111"
+app = flask.Flask(__name__, static_url_path='/static')
 
 @app.route('/')
 def home():
 
-    return render_template('index.html')
-
-@app.route('/signup', methods=['GET', 'POST'])
+    return flask.send_file('static/html/home.html')
+  
+@app.route('/signup', methods=['POST'])
 def signup():
 
-    return render_template('signup.html')
+    return flask.send_file('static/html/home.html')
 
-@app.route('/login', methods=['GET', 'POST'])
+@app.route('/login', methods=['POST'])
 def login():
     
-    return render_template('login.html')
+    return flask.send_file('static/html/home.html')
 
 app.run(port = 5500)
