@@ -12,7 +12,7 @@ python3 -m install --upgrade pip
 pip install flask flask-socketio gevent
 ```
 
-installer l'extension SQLite Viewer pour mieux visualiser la base de donnée
+installer l'extension SQLite Viewer pour mieux visualiser la base de données
 
 éxecution :
 ```
