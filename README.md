@@ -29,4 +29,4 @@ si py fonctionne pas :
 ```
 python3 main.py
 ```
-accéder au site web avec https://localhost:5500
+accéder au site web avec http://localhost:5500
