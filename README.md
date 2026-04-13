@@ -12,6 +12,7 @@ si py fonctionne pas :
 ```
 python3 -m install --upgrade pip
 ```
+installer les import :
 ```
 pip install flask flask-socketio gevent
 ```
