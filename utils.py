@@ -66,25 +66,27 @@ def initDB():
     db.commit()
 
 
-def createUser(username: str, password: str) -> tuple[bool, str]:
+def createUser(username, password) -> tuple[bool, str]:
     db = openDB()
 
     existing = db.execute(
-        'SELECT id FROM users WHERE username = ?', (username,)
+        'SELECT id FROM users WHERE username = ?', 
+        (username,)
     ).fetchone()
 
     if existing:
         return False, 'username_taken'
     
     db.execute(
-        'INSERT INTO users (username, password) VALUES (?, ?)', (username, generate_password_hash(password))
+        'INSERT INTO users (username, password) VALUES (?, ?)', 
+        (username, generate_password_hash(password))
     )
 
     db.commit()
 
     return True, 'ok'
 
-def createAdmin(username: str, password: str) -> None:
+def createAdmin(username, password) -> None:
     db = openDB()
     db.execute(
         'INSERT OR IGNORE INTO users (username, password, role) VALUES (?, ?, ?)',
@@ -93,4 +95,18 @@ def createAdmin(username: str, password: str) -> None:
     db.commit()
 
 
+def loginUser(username, password) -> tuple[bool, str]:
+    db = openDB()
+
+    user = db.execute(
+        'SELECT * FROM users WHERE username = ?',
+        (username,)
+    ).fetchone()
+
+    if not user:
+        return False, 'user_not_found'
     
+    if not check_password_hash(user['password'], password):
+        return False, 'wrong_pasword'
+    
+    return True, 'ok'
