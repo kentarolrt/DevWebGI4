@@ -2,10 +2,9 @@
 
 Installation des prérequis :
 
-installer python sur le Microsoft Store
-```
-https://apps.microsoft.com/detail/9PNRBTZXMB4Z?hl=neutral&gl=FR&ocid=pdpshare
-```
+installer python sur le Microsoft Store : https://apps.microsoft.com/detail/9PNRBTZXMB4Z?hl=neutral&gl=FR&ocid=pdpshare
+
+ensuite sur le terminal VS Code : 
 ```
 py -m install --upgrade pip
 ```
