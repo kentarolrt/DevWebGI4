@@ -12,17 +12,30 @@ def home():
 
     return flask.send_file('static/html/home.html')
   
-@app.route('/signup', methods=['POST'])
+@app.route('/signup', methods=['GET', 'POST'])
 def signup():
+    if flask.request.method == 'POST':
+        username = flask.request.form.get('username', '').strip()
+        password = flask.request.form.get('password', '').strip()
 
-    return flask.send_file('static/html/home.html')
+        success, reason = utils.createUser(username, password)
 
-@app.route('/login', methods=['POST'])
+        if success:
+            return flask.redirect('/')
+        else :
+            return flask.redirect(f'/signup?error{reason}')
+    else:
+        return flask.send_file('static/html/signup.html')
+
+@app.route('/login', methods=['GET','POST'])
 def login():
-    
-    return flask.send_file('static/html/home.html')
+    if flask.request.method == 'POST':
+        return flask.redirect('/')
+    else:
+        return flask.send_file('static/html/login.html')    
 
 with app.app_context():
     utils.initDB()
+    utils.createAdmin('admin', 'admin1234')
 
 socket.run(app, port = 5500)

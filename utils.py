@@ -1,5 +1,6 @@
 import sqlite3
-import flask 
+import flask
+from werkzeug.security import generate_password_hash, check_password_hash
 
 BASE = 'base.db'
 
@@ -63,3 +64,33 @@ def initDB():
     ''')
 
     db.commit()
+
+
+def createUser(username: str, password: str) -> tuple[bool, str]:
+    db = openDB()
+
+    existing = db.execute(
+        'SELECT id FROM users WHERE username = ?', (username,)
+    ).fetchone()
+
+    if existing:
+        return False, 'username_taken'
+    
+    db.execute(
+        'INSERT INTO users (username, password) VALUES (?, ?)', (username, generate_password_hash(password))
+    )
+
+    db.commit()
+
+    return True, 'ok'
+
+def createAdmin(username: str, password: str) -> None:
+    db = openDB()
+    db.execute(
+        'INSERT OR IGNORE INTO users (username, password, role) VALUES (?, ?, ?)',
+        (username, generate_password_hash(password), 'admin')
+    )
+    db.commit()
+
+
+    
