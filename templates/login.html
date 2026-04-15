@@ -5,17 +5,22 @@
 {% block content %}
 
 <form action="" method="post" class="login-form">
-    <div class="login-form">
-        <label for="username">pseudo: </label>
-        <input type="text" name="username" class="username" required />
-    </div>
-    <div class="login-form">
-        <label for="password">mot de pass: </label>
-        <input type="password" name="password" class="password" required />
-    </div>
-    <div class="login-form">
-        <input type="submit" name="submit" class="submit">
-    </div>
+    <form action="" method="post" class="form-card">
+        <h1 class="form-title">Connexion</h1>
+        <p class="form-subtitle">Connecte-toi à ton espace</p>
+
+        <div class="login-form">
+            <label for="username">pseudo: </label>
+            <input type="text" name="username" class="username" required />
+        </div>
+        <div class="login-form">
+            <label for="password">mot de passe: </label>
+            <input type="password" name="password" class="password" required />
+        </div>
+        <div class="login-form">
+            <input type="submit" name="submit" class="submit" required />
+        </div>
+    </form>
 </form>
 
 {% endblock %}
