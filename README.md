@@ -8,11 +8,11 @@ installer les extensions python
 
 ensuite sur le terminal VS Code : 
 ```
-py -m install --upgrade pip
+py -m pip install --upgrade pip
 ```
 si py fonctionne pas :
 ```
-python3 -m install --upgrade pip
+python3 -m pip install --upgrade pip
 ```
 installer les import :
 ```
