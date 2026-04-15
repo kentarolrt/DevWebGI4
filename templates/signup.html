@@ -1,25 +1,26 @@
 {% extends 'base.html' %}
 
-{% block title %} Sign Up - DevWeb {% endblock %}
+{% block title %}Login - DevWeb{% endblock %}
 
 {% block content %}
+<div class="auth-page">
+    <form action="" method="post" class="form-card">
+        <h1 class="form-title">Connexion</h1>
+        <p class="form-subtitle">Connecte-toi à ton espace</p>
 
-<form action="" method="post" class="signup-form">
-    <div class="signup-form">
-        <label for="username">pseudo: </label>
-        <input type="text" name="username" id="username" required />
-    </div>
-    <div class="signup-form">
-        <label for="password">mot de passe: </label>
-        <input type="password" name="password" id="password" required />
-    </div>
-    <div class="signup-form">
-        <label for="name">nom: </label>
-    </div>
-    <div class="signup-form">
-        <input type="submit" name="submit" id="submit" required />
-    </div>
-</form>
+        <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" name="username" id="username" required />
+        </div>
 
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" name="password" id="password" required />
+        </div>
+
+        <div class="form-actions">
+            <input type="submit" name="submit" id="submit" value="Se connecter" class="btn btn-primary">
+        </div>
+    </form>
+</div>
 {% endblock %}
-
