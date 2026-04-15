@@ -1,31 +1,44 @@
 {% extends 'base.html' %}
 
-{% block title %} Sign Up - DevWeb {% endblock %}
+{% block title %}Login - DevWeb{% endblock %}
 
 {% block content %}
+<div class="auth-page">
+    <form action="" method="post" class="form-card">
+        <h1 class="form-title">Connexion</h1>
+        <p class="form-subtitle">Connecte-toi à ton espace</p>
 
-<form action="" method="post" class="signup-form">
-    <div class="signup-form">
-        <label for="username">pseudo: </label>
-        <input type="text" name="username" class="username" required />
-    </div>
-    <div class="signup-form">
-        <label for="password">mot de passe: </label>
-        <input type="password" name="password" class="password" required />
-    </div>
-    <div class="signup-form">
-        <label for="lastname">nom: </label>
-        <input type="text" name="lastname" class="lastname" required />
-    </div>
-    <div>
-        <label for="firstname">prénom: </label>
-        <input type="text" name="firsname" class="firstname" required />
-    </div>
-    
-    <div class="signup-form">
-        <input type="submit" name="submit" class="submit" required />
-    </div>
-</form>
+    <form action="" method="post" class="signup-form">
+        <div class="signup-form">
+            <label for="username">pseudo: </label>
+            <input type="text" name="username" class="username" required />
+        </div>
+        <div class="signup-form">
+            <label for="password">mot de passe: </label>
+            <input type="password" name="password" class="password" required />
+        </div>
+        <div class="signup-form">
+            <label for="lastname">nom: </label>
+            <input type="text" name="lastname" class="lastname" required />
+        </div>
+        <div>
+            <label for="firstname">prénom: </label>
+            <input type="text" name="firsname" class="firstname" required />
+        </div>
+        
+        <div class="signup-form">
+            <input type="submit" name="submit" class="submit" required />
+        </div>
+    </form>
 
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" name="password" id="password" required />
+        </div>
+
+        <div class="form-actions">
+            <input type="submit" name="submit" id="submit" value="Se connecter" class="btn btn-primary">
+        </div>
+    </form>
+</div>
 {% endblock %}
-

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="styles/style.css" rel="stylesheet" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <title>{% block title %}DevWeb{% endblock %}</title>
 </head>
 <body>
@@ -11,16 +11,14 @@
         <a href="/" class="logo">logo</a>
         <nav>
             {% if user %}
-                <button class="btn-profile">{{ user }}</button>
-                <button class="btn-logout">Déconnexion</button>
+                <a href="/profile" class="btn-profile">{{ user }}</a>
+                <a href="/logout" class="btn-logout">Déconnexion</a>
             {% else %}
-                <button class="btn-signup">Inscription</button>
-                <button class="btn-login">Connexion</button>
+                <a href="/signup" class="btn-signup">Inscription</a>
+                <a href="/login" class="btn-login">Connexion</a>
             {% endif %}
         </nav>
     </header>
     {% block content %}{% endblock %}
-
-    <script src="static/js/connection.js"></script>
 </body>
 </html>
