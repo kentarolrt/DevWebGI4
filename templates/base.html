@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}DevWeb{% endblock %}</title>
+</head>
+<body>
+    <header>
+        <a href="/" class="logo">logo</a>
+        <nav>
+            {% if user %}
+                <button class="btn-profile">{{ user }}</button>
+                <button class="btn-logout">Logout</button>
+            {% else %}
+                <button class="btn-signup">Sign Up</button>
+                <button class="btn-login">Login</button>
+            {% endif %}
+        </nav>
+    </header>
+    {% block content %}{% endblock %}
+
+    <script src="static/js/connection.js"></script>
+</body>
+</html>

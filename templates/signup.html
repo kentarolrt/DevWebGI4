@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block title %} Sign Up - DevWeb {% endblock %}
+
+{% block content %}
+
+<form action="" method="post" class="signup-form">
+    <div class="signup-form">
+        <label for="username">username: </label>
+        <input type="text" name="username" id="username" required />
+    </div>
+    <div class="signup-form">
+        <label for="password">password: </label>
+        <input type="password" name="password" id="password" required />
+    </div>
+    <div class="signup-form">
+        <input type="submit" name="submit" id="submit" required />
+    </div>
+</form>
+
+{% endblock %}
+

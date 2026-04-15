@@ -11,7 +11,7 @@ socket = flask_socketio.SocketIO(app, async_mode='gevent')
 @app.route('/') 
 def home():
     
-    return flask.send_file('static/html/home.html')
+    return flask.render_template('home.html', user=flask.session.get('username'))
   
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
@@ -27,7 +27,7 @@ def signup():
         else:
             return flask.redirect(f'/signup?error={reason}')
     else:
-        return flask.send_file('static/html/signup.html')
+        return flask.render_template('signup.html', user=flask.session.get('username'))
 
 @app.route('/login', methods=['GET','POST'])
 def login():
@@ -46,12 +46,17 @@ def login():
         else:
             return flask.redirect(f'/login?error={reason}')        
     else:
-        return flask.send_file('static/html/login.html')    
+        return flask.render_template('login.html', user=flask.session.get('username'))   
+
+@app.route('/profile')
+def profile():
+
+    return flask.render_template('profile.html', user=flask.session.get('username'))
 
 @app.route('/logout')
 def logout():
     flask.session.clear()
-    return flask.redirect('/login')
+    return flask.redirect('/')
 
 
 with app.app_context():
