@@ -21,11 +21,30 @@
             <label for="lastname">nom: </label>
             <input type="text" name="lastname" class="lastname" required />
         </div>
-        <div>
+        <div class="signup-form">
             <label for="firstname">prénom: </label>
-            <input type="text" name="firsname" class="firstname" required />
+            <input type="text" name="firstname" class="firstname" required />
         </div>
-        
+        <div class="signup-form">
+            <label for="email">email: </label>
+            <input type="email" name="email" class="email" required />
+        </div>
+        <div class="signup-form">
+            <label for="age">age: </label>
+            <input type="text" name="age" class="age" required />
+        </div>
+        <div class="signup-form">
+            <label for="gender">genre: </label>
+            <select name="gender" class="gender">
+                <option value="male">Homme</option>
+                <option value="female">Femme</option>
+                <option value="other">Autre</option>
+            </select>
+        </div>
+        <div class="signup-form">
+            <label for="birthdate">Date de naissance: </label>
+            <input type="date" name="birthdate" class="birthdate" required />
+        </div>
         <div class="signup-form">
             <input type="submit" name="submit" class="submit" required />
         </div>

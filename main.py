@@ -18,8 +18,14 @@ def signup():
     if flask.request.method == 'POST':
         username = flask.request.form.get('username', '').strip()
         password = flask.request.form.get('password', '').strip()
+        lastname = flask.request.form.get('lastname', '').strip()
+        firstname = flask.request.form.get('firstname', '').strip()
+        email = flask.request.form.get('email', '').strip()
+        age = flask.request.form.get('age', '').strip()
+        gender = flask.request.form.get('gender', '').strip()
+        birthdate = flask.request.form.get('birthdate', '').strip()
 
-        success, reason = utils.createUser(username, password)
+        success, reason = utils.createUser(username, password, lastname, firstname, email, age, gender, birthdate)
 
         if success:
             flask.session['username'] = username

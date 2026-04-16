@@ -66,7 +66,7 @@ def initDB():
     db.commit()
 
 
-def createUser(username, password) -> tuple[bool, str]:
+def createUser(username, password, lastname, firstname, email, age, gender, birthdate) -> tuple[bool, str]:
     db = openDB()
 
     existing = db.execute(
@@ -78,8 +78,8 @@ def createUser(username, password) -> tuple[bool, str]:
         return False, 'username_taken'
     
     db.execute(
-        'INSERT INTO users (username, password) VALUES (?, ?)', 
-        (username, generate_password_hash(password))
+        'INSERT INTO users (username, password, nom, prenom, email, age, genre, date_naissance) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+        (username, generate_password_hash(password), lastname, firstname, email, age, gender, birthdate)
     )
 
     db.commit()
