@@ -62,6 +62,27 @@ def profil():
     user_data = utils.getUser(flask.session['username'])
     return flask.render_template('profile.html', user=flask.session.get('username'), user_data=user_data)
 
+@app.route('/profile/update', methods=['POST'])
+def profile_update():
+    if 'username' not in flask.session:
+        return flask.jsonify({'ok': False, 'error': 'not_logged_in'}), 401
+
+    data = flask.request.get_json()
+    field = data.get('field', '')
+    value = data.get('value', '').strip()
+
+    if not field or not value:
+        return flask.jsonify({'ok': False, 'error': 'empty'})
+
+    success, reason = utils.updateUser(flask.session['username'], field, value)
+
+    if success:
+        if field == 'username':
+            flask.session['username'] = value
+        return flask.jsonify({'ok': True})
+    else:
+        return flask.jsonify({'ok': False, 'error': reason})
+
 @app.route('/logout')
 def logout():
     flask.session.clear()

@@ -117,3 +117,25 @@ def getUser(username: str):
         'SELECT * FROM users WHERE username = ?',
         (username,)
     ).fetchone()
+
+ALLOWED_FIELDS = {'username', 'email', 'nom', 'prenom', 'age', 'genre', 'date_naissance'}
+
+def updateUser(username: str, field: str, value: str) -> tuple[bool, str]:
+    if field not in ALLOWED_FIELDS:
+        return False, 'field_not_allowed'
+
+    db = openDB()
+
+    if field == 'username':
+        existing = db.execute(
+            'SELECT id FROM users WHERE username = ?', (value,)
+        ).fetchone()
+        if existing:
+            return False, 'username_taken'
+
+    db.execute(
+        f'UPDATE users SET {field} = ? WHERE username = ?',
+        (value, username)
+    )
+    db.commit()
+    return True, 'ok'
