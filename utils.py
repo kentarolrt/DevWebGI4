@@ -107,6 +107,13 @@ def loginUser(username, password) -> tuple[bool, str]:
         return False, 'user_not_found'
     
     if not check_password_hash(user['password'], password):
-        return False, 'wrong_pasword'
+        return False, 'wrong_password'
     
     return True, 'ok'
+
+def getUser(username: str):
+    db = openDB()
+    return db.execute(
+        'SELECT * FROM users WHERE username = ?',
+        (username,)
+    ).fetchone()

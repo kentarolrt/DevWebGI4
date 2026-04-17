@@ -53,11 +53,14 @@ def login():
             return flask.redirect(f'/login?error={reason}')        
     else:
         return flask.render_template('login.html', user=flask.session.get('username'))   
-
+    
 @app.route('/profile')
-def profile():
+def profil():
+    if 'username' not in flask.session:
+        return flask.redirect('/login')
 
-    return flask.render_template('profile.html', user=flask.session.get('username'))
+    user_data = utils.getUser(flask.session['username'])
+    return flask.render_template('profile.html', user=flask.session.get('username'), user_data=user_data)
 
 @app.route('/logout')
 def logout():
