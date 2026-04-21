@@ -8,7 +8,9 @@
 </head>
 <body>
     <header>
-        <a href="/" class="logo">logo</a>
+        <a href="/" class="logo">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="OsmHome" class="logo-img">
+        </a>
         <nav>
             {% if user %}
                 <a href="/profile" class="btn-profile">{{ user }}</a>

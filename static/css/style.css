@@ -1088,3 +1088,8 @@ header nav {
     max-width: 100%;
   }
 }
+
+.logo-img {
+  height: 65px;
+  object-fit: contain;
+}
