@@ -1,26 +1,133 @@
 {% extends 'base.html' %}
 
-{% block title %} Login - DevWeb {% endblock %}
+{% block title %}Login - DevWeb{% endblock %}
 
 {% block content %}
+<div class="auth-split-page">
 
-<form action="" method="post" class="login-form">
-    <form action="" method="post" class="form-card">
-        <h1 class="form-title">Connexion</h1>
-        <p class="form-subtitle">Connecte-toi à ton espace</p>
+    <section class="auth-showcase">
+        <div class="auth-showcase-inner">
+            <p class="auth-kicker">🏠 OsmHome</p>
+            <h1 class="auth-big-title">
+                Pilotez votre maison<br>
+                <span>simplement</span>,<br>
+                intelligemment.
+            </h1>
+            <p class="auth-big-subtitle">
+                Centralisez vos objets connectés, surveillez votre consommation
+                et gardez le contrôle sur votre habitat depuis une seule interface.
+            </p>
 
-        <div class="login-form">
-            <label for="username">pseudo: </label>
-            <input type="text" name="username" class="username" required />
-        </div>
-        <div class="login-form">
-            <label for="password">mot de passe: </label>
-            <input type="password" name="password" class="password" required />
-        </div>
-        <div class="login-form">
-            <input type="submit" name="submit" class="submit" required />
-        </div>
-    </form>
-</form>
+            <div class="auth-stats-grid">
+                <div class="auth-stat-card">
+                    <h3>24</h3>
+                    <p>Objets connectés</p>
+                </div>
+                <div class="auth-stat-card">
+                    <h3>-32%</h3>
+                    <p>Consommation</p>
+                </div>
+                <div class="auth-stat-card">
+                    <h3>99%</h3>
+                    <p>Disponibilité</p>
+                </div>
+                <div class="auth-stat-card">
+                    <h3>6</h3>
+                    <p>Pièces pilotées</p>
+                </div>
+            </div>
 
+            <div class="auth-graph-card">
+                <div class="graph-head">
+                    <div>
+                        <h4>Activité de la maison</h4>
+                        <p>Consommation sur 7 jours</p>
+                    </div>
+                    <span class="graph-badge">Temps réel</span>
+                </div>
+
+                <div class="fake-chart">
+                    <span style="height: 45%"></span>
+                    <span style="height: 62%"></span>
+                    <span style="height: 38%"></span>
+                    <span style="height: 78%"></span>
+                    <span style="height: 58%"></span>
+                    <span style="height: 88%"></span>
+                    <span style="height: 54%"></span>
+                </div>
+
+                <div class="chart-labels">
+                    <span>L</span>
+                    <span>M</span>
+                    <span>M</span>
+                    <span>J</span>
+                    <span>V</span>
+                    <span>S</span>
+                    <span>D</span>
+                </div>
+            </div>
+
+            <div class="auth-devices-preview">
+                <div class="mini-device-row">
+                    <span>🌡️ Thermostat salon</span>
+                    <span class="mini-state on">21°C</span>
+                </div>
+                <div class="mini-device-row">
+                    <span>💡 Éclairage cuisine</span>
+                    <span class="mini-state on">ON</span>
+                </div>
+                <div class="mini-device-row">
+                    <span>📷 Caméra entrée</span>
+                    <span class="mini-state on">LIVE</span>
+                </div>
+                <div class="mini-device-row">
+                    <span>🫧 Lave-linge</span>
+                    <span class="mini-state off">OFF</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="auth-form-side">
+        <div class="form-card auth-form-card">
+            <p class="auth-form-kicker">Connexion</p>
+            <h2 class="form-title">Bon retour 👋</h2>
+            <p class="form-subtitle">Connecte-toi à ton espace OsmHome</p>
+
+            <form action="" method="post">
+                <div class="form-group">
+                    <label for="username">Pseudo</label>
+                    <input type="text" name="username" id="username" class="username" placeholder="ex : alex.home" required />
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Mot de passe</label>
+                    <input type="password" name="password" id="password" class="password" placeholder="••••••••" required />
+                </div>
+
+                <div class="auth-inline-row">
+                    <label class="remember-me">
+                        <input type="checkbox" />
+                        <span>Se souvenir de moi</span>
+                    </label>
+                    <a href="#" class="forgot-link">Mot de passe oublié ?</a>
+                </div>
+
+                <div class="form-actions">
+                    <input type="submit" name="submit" value="Se connecter" class="btn btn-primary" />
+                </div>
+            </form>
+
+            <div class="auth-divider">
+                <span>ou</span>
+            </div>
+
+            <p class="auth-bottom-text">
+                Pas encore de compte ?
+                <a href="/signup">Créer un compte</a>
+            </p>
+        </div>
+    </section>
+
+</div>
 {% endblock %}

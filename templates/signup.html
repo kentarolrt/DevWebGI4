@@ -1,53 +1,163 @@
 {% extends 'base.html' %}
 
-{% block title %}Login - DevWeb{% endblock %}
+{% block title %}Sign Up - DevWeb{% endblock %}
 
 {% block content %}
-<div class="auth-page">
-    <form action="" method="post" class="form-card">
-        <h1 class="form-title">Inscription</h1>
-        <p class="form-subtitle">Inscrit-toi à ton espace</p>
+<div class="auth-split-page">
 
-    <form action="" method="post" class="signup-form">
-        <div class="signup-form">
-            <label for="username">pseudo: </label>
-            <input type="text" name="username" class="username" required />
+    <section class="auth-showcase">
+        <div class="auth-showcase-inner">
+            <p class="auth-kicker">🏠 OsmHome</p>
+            <h1 class="auth-big-title">
+                Créez votre espace<br>
+                <span>connecté</span>,<br>
+                simplement.
+            </h1>
+            <p class="auth-big-subtitle">
+                Rejoignez OsmHome pour centraliser vos objets connectés,
+                suivre votre consommation et piloter votre maison depuis une seule interface.
+            </p>
+
+            <div class="auth-stats-grid">
+                <div class="auth-stat-card">
+                    <h3>24</h3>
+                    <p>Objets connectés</p>
+                </div>
+                <div class="auth-stat-card">
+                    <h3>6</h3>
+                    <p>Pièces pilotées</p>
+                </div>
+                <div class="auth-stat-card">
+                    <h3>-32%</h3>
+                    <p>Économie d’énergie</p>
+                </div>
+                <div class="auth-stat-card">
+                    <h3>99%</h3>
+                    <p>Disponibilité</p>
+                </div>
+            </div>
+
+            <div class="auth-graph-card">
+                <div class="graph-head">
+                    <div>
+                        <h4>Maison intelligente</h4>
+                        <p>Vue simplifiée des performances</p>
+                    </div>
+                    <span class="graph-badge">Optimisé</span>
+                </div>
+
+                <div class="fake-chart">
+                    <span style="height: 42%"></span>
+                    <span style="height: 56%"></span>
+                    <span style="height: 36%"></span>
+                    <span style="height: 80%"></span>
+                    <span style="height: 64%"></span>
+                    <span style="height: 88%"></span>
+                    <span style="height: 60%"></span>
+                </div>
+
+                <div class="chart-labels">
+                    <span>L</span>
+                    <span>M</span>
+                    <span>M</span>
+                    <span>J</span>
+                    <span>V</span>
+                    <span>S</span>
+                    <span>D</span>
+                </div>
+            </div>
+
+            <div class="auth-devices-preview">
+                <div class="mini-device-row">
+                    <span>🌡️ Température optimisée</span>
+                    <span class="mini-state on">21°C</span>
+                </div>
+                <div class="mini-device-row">
+                    <span>💡 Éclairage intelligent</span>
+                    <span class="mini-state on">ON</span>
+                </div>
+                <div class="mini-device-row">
+                    <span>📷 Sécurité en ligne</span>
+                    <span class="mini-state on">LIVE</span>
+                </div>
+                <div class="mini-device-row">
+                    <span>⚡ Suivi énergie</span>
+                    <span class="mini-state off">AUTO</span>
+                </div>
+            </div>
         </div>
-        <div class="signup-form">
-            <label for="password">mot de passe: </label>
-            <input type="password" name="password" class="password" required />
+    </section>
+
+    <section class="auth-form-side">
+        <div class="form-card auth-form-card">
+            <p class="auth-form-kicker">Inscription</p>
+            <h2 class="form-title">Créer un compte</h2>
+            <p class="form-subtitle">Rejoignez votre espace OsmHome</p>
+
+            <form action="" method="post">
+                <div class="form-group">
+                    <label for="username">Pseudo</label>
+                    <input type="text" name="username" id="username" class="username" placeholder="ex : alex.home" required />
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="lastname">Nom</label>
+                        <input type="text" name="lastname" id="lastname" class="lastname" placeholder="Dupont" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="firstname">Prénom</label>
+                        <input type="text" name="firstname" id="firstname" class="firstname" placeholder="Alex" required />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" name="email" id="email" class="email" placeholder="alex@email.com" required />
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="age">Âge</label>
+                        <input type="text" name="age" id="age" class="age" placeholder="24" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="gender">Genre</label>
+                        <select name="gender" id="gender" class="gender">
+                            <option value="male">Homme</option>
+                            <option value="female">Femme</option>
+                            <option value="other">Autre</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="birthdate">Date de naissance</label>
+                    <input type="date" name="birthdate" id="birthdate" class="birthdate" required />
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Mot de passe</label>
+                    <input type="password" name="password" id="password" class="password" placeholder="••••••••" required />
+                </div>
+
+                <div class="form-actions">
+                    <input type="submit" name="submit" value="Créer mon compte" class="btn btn-primary" />
+                </div>
+            </form>
+
+            <div class="auth-divider">
+                <span>ou</span>
+            </div>
+
+            <p class="auth-bottom-text">
+                Déjà inscrit ?
+                <a href="/login">Se connecter</a>
+            </p>
         </div>
-        <div class="signup-form">
-            <label for="lastname">nom: </label>
-            <input type="text" name="lastname" class="lastname" required />
-        </div>
-        <div class="signup-form">
-            <label for="firstname">prénom: </label>
-            <input type="text" name="firstname" class="firstname" required />
-        </div>
-        <div class="signup-form">
-            <label for="email">email: </label>
-            <input type="email" name="email" class="email" required />
-        </div>
-        <div class="signup-form">
-            <label for="age">age: </label>
-            <input type="text" name="age" class="age" required />
-        </div>
-        <div class="signup-form">
-            <label for="gender">genre: </label>
-            <select name="gender" class="gender">
-                <option value="male">Homme</option>
-                <option value="female">Femme</option>
-                <option value="other">Autre</option>
-            </select>
-        </div>
-        <div class="signup-form">
-            <label for="birthdate">Date de naissance: </label>
-            <input type="date" name="birthdate" class="birthdate" required />
-        </div>
-        <div class="signup-form">
-            <input type="submit" name="submit" class="submit" required />
-        </div>
-    </form>
+    </section>
+
 </div>
 {% endblock %}
