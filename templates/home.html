@@ -1,9 +1,117 @@
 {% extends 'base.html' %}
 
-{% block title %} Accueil - DevWeb {% endblock %}
+{% block title %}Accueil - DevWeb{% endblock %}
 
 {% block content %}
 
-<p>accueil</p>
+<section class="hero">
+    <div class="hero-container">
+
+        <!-- TEXTE -->
+        <div class="hero-left">
+            <p class="hero-tag">🏠 HomeCore</p>
+
+            <h1>
+                Votre maison<br>
+                <span class="accent">intelligente</span><br>
+                et connectée
+            </h1>
+
+            <p class="hero-subtitle">
+                Gérez vos objets, surveillez votre consommation
+                et contrôlez votre maison depuis une seule plateforme.
+            </p>
+
+            <div class="hero-buttons">
+                {% if user %}
+                    <a href="/profile" class="btn-primary">Mon profil</a>
+                    <a href="/logout" class="btn-secondary">Déconnexion</a>
+                {% else %}
+                    <a href="/signup" class="btn-primary">Créer un compte</a>
+                    <a href="/login" class="btn-secondary">Se connecter</a>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- VISUEL (objets connectés) -->
+        <div class="hero-right">
+            <div class="device-card">
+
+                <div class="device-item">
+                    <span>🌡️ Thermostat</span>
+                    <span class="status on">21°C</span>
+                </div>
+
+                <div class="device-item">
+                    <span>💡 Lumière</span>
+                    <span class="status on">ON</span>
+                </div>
+
+                <div class="device-item">
+                    <span>📷 Caméra</span>
+                    <span class="status on">LIVE</span>
+                </div>
+
+                <div class="device-item">
+                    <span>🫧 Lave-linge</span>
+                    <span class="status off">OFF</span>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</section>
+
+
+<!-- SECTION FEATURES -->
+<section class="features">
+    <div class="features-container">
+
+        <div class="feature-card">
+            <h3>💡 Éclairage intelligent</h3>
+            <p>Contrôlez vos lumières à distance et automatisez votre maison.</p>
+        </div>
+
+        <div class="feature-card">
+            <h3>🌡️ Température</h3>
+            <p>Optimisez votre chauffage et économisez de l'énergie.</p>
+        </div>
+
+        <div class="feature-card">
+            <h3>🔒 Sécurité</h3>
+            <p>Surveillez votre maison en temps réel depuis n'importe où.</p>
+        </div>
+
+    </div>
+</section>
+
+
+<!-- SECTION STATS -->
+<section class="stats">
+    <div class="stats-container">
+
+        <div class="stat-box">
+            <h2>24</h2>
+            <p>Objets connectés</p>
+        </div>
+
+        <div class="stat-box">
+            <h2>4</h2>
+            <p>Types d'utilisateurs</p>
+        </div>
+
+        <div class="stat-box">
+            <h2>-32%</h2>
+            <p>Consommation</p>
+        </div>
+
+        <div class="stat-box">
+            <h2>99%</h2>
+            <p>Disponibilité</p>
+        </div>
+
+    </div>
+</section>
 
 {% endblock %}
