@@ -94,7 +94,8 @@ def search():
     filtre_type = flask.request.args.get('type', '').strip()
     filtre_etat = flask.request.args.get('etat', '').strip()
 
-    resultats = utils.searchObjets(query, filtre_type, filtre_etat)
+    searched  = bool(query or filtre_type or filtre_etat)
+    resultats = utils.searchObjets(query, filtre_type, filtre_etat) if searched else None
     types     = utils.getTypes()
 
     return flask.render_template(
@@ -104,7 +105,8 @@ def search():
         types=types,
         query=query,
         filtre_type=filtre_type,
-        filtre_etat=filtre_etat
+        filtre_etat=filtre_etat,
+        searched=searched
     )
 
 

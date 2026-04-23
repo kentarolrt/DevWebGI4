@@ -12,13 +12,17 @@
             <img src="{{ url_for('static', filename='images/logo.png') }}" alt="OsmHome" class="logo-img">
         </a>
 
-        <form action="/search" method="get" class="search-bar">
-            <input 
-                type="text" 
-                name="q" 
-                placeholder="Rechercher un objet..." 
-                value="{{ request.args.get('q', '') }}"
-            />
+        <form action="/search" method="get" class="search-bar" id="search-form">
+            <div class="search-input-wrap">
+                <input
+                    type="text"
+                    name="q"
+                    id="search-input"
+                    placeholder="Rechercher un objet..."
+                    value="{{ request.args.get('q', '') }}"
+                />
+                <button type="button" class="search-clear" id="search-clear" aria-label="Effacer la recherche">×</button>
+            </div>
             <select name="type">
                 <option value="">Tous les types</option>
                 {% for t in types %}
@@ -47,6 +51,8 @@
     </header>
 
     {% block content %}{% endblock %}
+
+    <script src="{{ url_for('static', filename='js/search.js') }}"></script>
 
     <footer>
         <span>OsmHome</span> — Plateforme domotique intelligente &copy; 2026

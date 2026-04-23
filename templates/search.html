@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block title %}Recherche - OsmHome{% endblock %}
+
+{% block content %}
+<div class="search-page">
+    <div class="search-header">
+        {% if searched %}
+        <h2>
+            <span class="result-count">{{ resultats|length }}</span> résultat{{ 's' if resultats|length > 1 }} trouvé{{ 's' if resultats|length > 1 }}
+        </h2>
+        <p class="search-summary">
+            {% if query %}mot-clé : <strong>{{ query }}</strong>{% endif %}
+            {% if filtre_type %} · type : <strong>{{ filtre_type }}</strong>{% endif %}
+            {% if filtre_etat %} · état : <strong>{{ filtre_etat }}</strong>{% endif %}
+        </p>
+        {% else %}
+        <h2>Rechercher un objet connecté</h2>
+        {% endif %}
+    </div>
+
+    {% if not searched %}
+    <div class="no-results">
+        <p>Utilisez la barre de recherche ci-dessus pour trouver un objet connecté.</p>
+    </div>
+
+    {% elif resultats %}
+    <div class="objets-grid">
+        {% for objet in resultats %}
+        <div class="objet-card">
+            <div class="objet-top">
+                <div class="objet-icon" aria-label="{{ objet['type'] }}">
+                    {% if objet['type'] == 'thermostat' %}🌡️
+                    {% elif objet['type'] == 'caméra' %}📷
+                    {% elif objet['type'] == 'éclairage' %}💡
+                    {% elif objet['type'] == 'serrure' %}🔒
+                    {% elif objet['type'] == 'capteur' %}📡
+                    {% elif objet['type'] == 'aspirateur' %}🤖
+                    {% elif objet['type'] == 'électroménager' %}🏠
+                    {% elif objet['type'] == 'volet' %}🪟
+                    {% elif objet['type'] == 'montre' %}⌚
+                    {% elif objet['type'] == 'énergie' %}⚡
+                    {% else %}📦{% endif %}
+                </div>
+                <span class="objet-etat {{ 'etat-actif' if objet['etat'] == 'actif' else 'etat-inactif' }}">
+                    {{ objet['etat'] }}
+                </span>
+            </div>
+
+            <h3 class="objet-nom">{{ objet['nom'] }}</h3>
+            <p class="objet-description">{{ objet['description'] }}</p>
+
+            <ul class="objet-infos">
+                <li><strong>Type</strong> {{ objet['type'] }}</li>
+                <li><strong>Marque</strong> {{ objet['marque'] }}</li>
+                {% if objet['piece'] %}
+                <li><strong>Pièce</strong> {{ objet['piece'] }}</li>
+                {% endif %}
+                <li><strong>Connectivité</strong> {{ objet['connectivite'] }}</li>
+                {% if objet['batterie'] %}
+                <li><strong>Batterie</strong> {{ objet['batterie'] }}%</li>
+                {% endif %}
+            </ul>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% else %}
+    <div class="no-results">
+        <p>Aucun objet trouvé pour cette recherche.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
