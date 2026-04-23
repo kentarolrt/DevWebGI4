@@ -1163,6 +1163,7 @@ header nav {
   );
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   mask-composite: exclude;
   pointer-events: none;
 }
@@ -1684,4 +1685,17 @@ header nav {
         width: 100%;
         border-radius: 12px;
     }
+}
+
+footer {
+    margin-top: 2rem;
+    background: #111122;
+    color: rgba(255, 255, 255, 0.5);
+    text-align: center;
+    padding: 1.5rem;
+    font-size: 0.88rem;
+}
+
+footer span {
+    color: var(--accent);
 }
