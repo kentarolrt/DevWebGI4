@@ -88,9 +88,36 @@ def logout():
     flask.session.clear()
     return flask.redirect('/')
 
+@app.route('/search')
+def search():
+    query       = flask.request.args.get('q', '').strip()
+    filtre_type = flask.request.args.get('type', '').strip()
+    filtre_etat = flask.request.args.get('etat', '').strip()
+
+    resultats = utils.searchObjets(query, filtre_type, filtre_etat)
+    types     = utils.getTypes()
+
+    return flask.render_template(
+        'search.html',
+        user=flask.session.get('username'),
+        resultats=resultats,
+        types=types,
+        query=query,
+        filtre_type=filtre_type,
+        filtre_etat=filtre_etat
+    )
+
+
+@app.context_processor
+def inject_types():
+    try:
+        return {'types': utils.getTypes()}
+    except:
+        return {'types': []}
 
 with app.app_context():
     utils.initDB()
     utils.createAdmin('admin', 'admin1234')
 
-socket.run(app, port = 5500)
+if __name__ == '__main__':
+    socket.run(app, port=5500)

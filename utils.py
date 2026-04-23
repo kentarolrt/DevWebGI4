@@ -139,3 +139,29 @@ def updateUser(username: str, field: str, value: str) -> tuple[bool, str]:
     )
     db.commit()
     return True, 'ok'
+
+def searchObjets(query='', filtre_type='', filtre_etat='') -> list:
+    db = openDB()
+    
+    sql = 'SELECT * FROM objets_connectes WHERE 1=1'
+    params = []
+
+    if query:
+        sql += ' AND (nom LIKE ? OR description LIKE ?)'
+        params.extend([f'%{query}%', f'%{query}%'])
+
+    if filtre_type:
+        sql += ' AND type = ?'
+        params.append(filtre_type)
+
+    if filtre_etat:
+        sql += ' AND etat = ?'
+        params.append(filtre_etat)
+
+    sql += ' ORDER BY nom'
+    return db.execute(sql, params).fetchall()
+
+def getTypes() -> list:
+    db = openDB()
+    rows = db.execute('SELECT DISTINCT type FROM objets_connectes ORDER BY type').fetchall()
+    return [row['type'] for row in rows]
