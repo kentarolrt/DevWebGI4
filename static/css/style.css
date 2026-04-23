@@ -1617,8 +1617,6 @@ header nav {
   }
 }
 
-Ajoute ça à la fin de ton style.css :
-css/* ========== SEARCH BAR ========== */
 .search-bar {
     display: flex;
     flex-direction: row;
@@ -1626,7 +1624,7 @@ css/* ========== SEARCH BAR ========== */
     gap: 8px;
     flex: 1;
     max-width: 600px;
-    margin: 0 2rem;
+    margin: 0 2rem 0 3rem;
 }
 
 .search-bar input {
