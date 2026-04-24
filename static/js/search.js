@@ -3,7 +3,8 @@ const clearBtn = document.getElementById('search-clear');
 const form = document.getElementById('search-form');
 
 function updateClear() {
-    clearBtn.style.display = input.value ? 'flex' : 'none';
+    const isMobile = window.innerWidth <= 768;
+    clearBtn.style.display = (!isMobile && input.value) ? 'flex' : 'none';
 }
 
 clearBtn.addEventListener('click', () => {

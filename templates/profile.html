@@ -1,35 +1,91 @@
 {% extends 'base.html' %}
 
-{% block title %} Profile - DevWeb {% endblock %}
+{% block title %}Mon profil - OsmHome{% endblock %}
 
 {% block content %}
+<div class="profile-page">
 
-<div class="profile">
-
-    <div class="field">
-        <span class="label">Username</span>
-        <span class="value" id="username">{{ user_data['username'] }}</span>
-        <button class="btn-edit" data-field="username">modifer</button>
+    <div class="profile-back">
+        <a href="/dashboard">← Tableau de bord</a>
     </div>
 
-    <div class="field">
-        <span class="label">Email</span>
-        <span class="value" id="email">{{ user_data['email'] }}</span>
-        <button class="btn-edit" data-field="email">modifer</button>
-    </div>
+    <div class="profile-layout-main">
 
-    <div class="field">
-        <span class="label">Nom</span>
-        <span class="value" id="nom">{{ user_data['nom'] }}</span>
-        <button class="btn-edit" data-field="nom">modifier</button>
-    </div>
+        <!-- Carte identité -->
+        <div class="profile-id-card">
+            <div class="profile-avatar-lg">{{ user_data['username'][0] | upper }}</div>
+            <div class="profile-id-info">
+                <h2 class="profile-username">{{ user_data['username'] }}</h2>
+                <span class="profile-role-badge">{{ user_data['type_membre'] or '—' }}</span>
+            </div>
+            <div class="profile-level-badge">
+                <span class="level-label">{{ user_data['niveau'] | capitalize }}</span>
+                <span class="level-pts">{{ "%.2f"|format(user_data['points'] or 0) }} pts</span>
+            </div>
+        </div>
 
-    <div class="field">
-        <span class="label">Prénom</span>
-        <span class="value" id="prenom">{{ user_data['prenom'] }}</span>
-        <button class="btn-edit" data-field="prenom">modifier</button>
-    </div>
+        <!-- Partie publique -->
+        <div class="profile-section">
+            <div class="profile-section-header">
+                <h3>Informations publiques</h3>
+                <span class="profile-section-hint">Visibles par tous les membres</span>
+            </div>
+            <div class="profile-fields">
+                <div class="profile-field">
+                    <span class="profile-field-label">Pseudonyme</span>
+                    <span class="profile-field-value" id="username">{{ user_data['username'] }}</span>
+                    <button class="btn-field-edit" data-field="username">Modifier</button>
+                </div>
+                <div class="profile-field">
+                    <span class="profile-field-label">Âge</span>
+                    <span class="profile-field-value" id="age">{{ user_data['age'] or '—' }}</span>
+                    <button class="btn-field-edit" data-field="age">Modifier</button>
+                </div>
+                <div class="profile-field">
+                    <span class="profile-field-label">Genre</span>
+                    <span class="profile-field-value" id="genre">{{ user_data['genre'] or '—' }}</span>
+                    <button class="btn-field-edit" data-field="genre">Modifier</button>
+                </div>
+                <div class="profile-field">
+                    <span class="profile-field-label">Date de naissance</span>
+                    <span class="profile-field-value" id="date_naissance">{{ user_data['date_naissance'] or '—' }}</span>
+                    <button class="btn-field-edit" data-field="date_naissance">Modifier</button>
+                </div>
+                <div class="profile-field">
+                    <span class="profile-field-label">Rôle dans la maison</span>
+                    <span class="profile-field-value" id="type_membre">{{ user_data['type_membre'] or '—' }}</span>
+                    <button class="btn-field-edit" data-field="type_membre">Modifier</button>
+                </div>
+            </div>
+        </div>
 
+        <!-- Partie privée -->
+        <div class="profile-section profile-section--private">
+            <div class="profile-section-header">
+                <h3>Informations privées</h3>
+                <span class="profile-section-hint">Visibles uniquement par vous et l'administrateur</span>
+            </div>
+            <div class="profile-fields">
+                <div class="profile-field">
+                    <span class="profile-field-label">Nom</span>
+                    <span class="profile-field-value" id="nom">{{ user_data['nom'] or '—' }}</span>
+                    <button class="btn-field-edit" data-field="nom">Modifier</button>
+                </div>
+                <div class="profile-field">
+                    <span class="profile-field-label">Prénom</span>
+                    <span class="profile-field-value" id="prenom">{{ user_data['prenom'] or '—' }}</span>
+                    <button class="btn-field-edit" data-field="prenom">Modifier</button>
+                </div>
+                <div class="profile-field">
+                    <span class="profile-field-label">Email</span>
+                    <span class="profile-field-value" id="email">{{ user_data['email'] or '—' }}</span>
+                    <button class="btn-field-edit" data-field="email">Modifier</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
 </div>
-<script src='../static/js/profile.js'></script>
+
+<script src="{{ url_for('static', filename='js/profile.js') }}"></script>
 {% endblock %}

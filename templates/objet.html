@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ objet['nom'] }} - OsmHome{% endblock %}
+
+{% block content %}
+<div class="objet-detail-page">
+    <a href="javascript:history.back()" class="objet-detail-back">← Retour</a>
+
+    <div class="objet-detail-card">
+        <div class="objet-detail-top">
+            <div class="objet-icon objet-icon--lg" aria-label="{{ objet['type'] }}">
+                {% if objet['type'] == 'thermostat' %}🌡️
+                {% elif objet['type'] == 'caméra' %}📷
+                {% elif objet['type'] == 'éclairage' %}💡
+                {% elif objet['type'] == 'serrure' %}🔒
+                {% elif objet['type'] == 'capteur' %}📡
+                {% elif objet['type'] == 'aspirateur' %}🤖
+                {% elif objet['type'] == 'électroménager' %}🏠
+                {% elif objet['type'] == 'volet' %}🪟
+                {% elif objet['type'] == 'montre' %}⌚
+                {% elif objet['type'] == 'énergie' %}⚡
+                {% else %}📦{% endif %}
+            </div>
+            <div>
+                <h1 class="objet-detail-nom">{{ objet['nom'] }}</h1>
+                <span class="objet-etat {{ 'etat-actif' if objet['etat'] == 'actif' else 'etat-inactif' }}">
+                    {{ objet['etat'] }}
+                </span>
+            </div>
+        </div>
+
+        <p class="objet-detail-description">{{ objet['description'] }}</p>
+
+        <ul class="objet-detail-infos">
+            <li><span>Type</span><strong>{{ objet['type'] }}</strong></li>
+            <li><span>Marque</span><strong>{{ objet['marque'] }}</strong></li>
+            {% if objet['piece'] %}
+            <li><span>Pièce</span><strong>{{ objet['piece'] }}</strong></li>
+            {% endif %}
+            <li><span>Connectivité</span><strong>{{ objet['connectivite'] }}</strong></li>
+            {% if objet['batterie'] %}
+            <li><span>Batterie</span><strong>{{ objet['batterie'] }}%</strong></li>
+            {% endif %}
+        </ul>
+
+        {% if user %}
+        <input type="hidden" id="objet-id" value="{{ objet['id'] }}">
+        <p class="objet-detail-points" id="points-msg">Consultation en cours...</p>
+        <script src="{{ url_for('static', filename='js/objet.js') }}"></script>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

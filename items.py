@@ -1,7 +1,7 @@
 import sys
 sys.path.append('.')
 
-from main import app  # si ton fichier s'appelle main.py, change en: from main import app
+from main import app
 import utils
 
 objets = [

@@ -27,7 +27,7 @@
     {% elif resultats %}
     <div class="objets-grid">
         {% for objet in resultats %}
-        <div class="objet-card">
+        <a href="/objet/{{ objet['id'] }}" class="objet-card objet-card--link">
             <div class="objet-top">
                 <div class="objet-icon" aria-label="{{ objet['type'] }}">
                     {% if objet['type'] == 'thermostat' %}🌡️
@@ -61,7 +61,7 @@
                 <li><strong>Batterie</strong> {{ objet['batterie'] }}%</li>
                 {% endif %}
             </ul>
-        </div>
+        </a>
         {% endfor %}
     </div>
 

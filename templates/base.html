@@ -8,7 +8,7 @@
 </head>
 <body>
     <header>
-        <a href="/" class="logo">
+        <a href="{{ '/dashboard' if user else '/' }}" class="logo">
             <img src="{{ url_for('static', filename='images/logo.png') }}" alt="OsmHome" class="logo-img">
         </a>
 
@@ -41,6 +41,7 @@
 
         <nav>
             {% if user %}
+                <a href="/membres" class="btn-membres">Membres</a>
                 <a href="/profile" class="btn-profile">{{ user }}</a>
                 <a href="/logout" class="btn-logout">Déconnexion</a>
             {% else %}
@@ -53,6 +54,10 @@
     {% block content %}{% endblock %}
 
     <script src="{{ url_for('static', filename='js/search.js') }}"></script>
+    {% if user %}
+    <script src="{{ url_for('static', filename='js/socket.io.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/realtime.js') }}"></script>
+    {% endif %}
 
     <footer>
         <span>OsmHome</span> — Plateforme domotique intelligente &copy; 2026

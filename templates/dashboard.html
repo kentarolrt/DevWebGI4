@@ -1,11 +1,154 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - DevWeb</title>
-</head>
-<body>
-    
-</body>
-</html>
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - OsmHome{% endblock %}
+
+{% block content %}
+
+{% set points = user_data['points'] or 0 %}
+{% if points < 5 %}
+    {% set level_label = 'Débutant' %}
+    {% set next_label = 'Intermédiaire' %}
+    {% set next_pts = 5 %}
+    {% set progress = (points / 5 * 100) | int %}
+{% elif points < 15 %}
+    {% set level_label = 'Intermédiaire' %}
+    {% set next_label = 'Avancé' %}
+    {% set next_pts = 15 %}
+    {% set progress = ((points - 5) / 10 * 100) | int %}
+{% elif points < 30 %}
+    {% set level_label = 'Avancé' %}
+    {% set next_label = 'Expert' %}
+    {% set next_pts = 30 %}
+    {% set progress = ((points - 15) / 15 * 100) | int %}
+{% else %}
+    {% set level_label = 'Expert' %}
+    {% set next_label = None %}
+    {% set next_pts = None %}
+    {% set progress = 100 %}
+{% endif %}
+
+<div class="dash-hero">
+<div class="dashboard-page">
+
+    <div class="dash-welcome">
+        <div class="dash-avatar">{{ user_data['username'][0] | upper }}</div>
+        <div class="dash-welcome-text">
+            <h1>Bonjour, <span class="text-accent">{{ user_data['username'] }}</span> 👋</h1>
+            <p>Niveau actuel : <strong>{{ level_label }}</strong></p>
+        </div>
+    </div>
+
+    <div class="dash-stats">
+        <div class="dash-stat-card">
+            <div class="dash-stat-icon">⭐</div>
+            <div>
+                <div class="dash-stat-value points-live">{{ "%.2f"|format(points) }}</div>
+                <div class="dash-stat-label">Points</div>
+            </div>
+        </div>
+        <div class="dash-stat-card">
+            <div class="dash-stat-icon">🔗</div>
+            <div>
+                <div class="dash-stat-value">{{ connections }}</div>
+                <div class="dash-stat-label">Connexions</div>
+            </div>
+        </div>
+        <div class="dash-stat-card">
+            <div class="dash-stat-icon">🏅</div>
+            <div>
+                <div class="dash-stat-value level-live">{{ level_label }}</div>
+                <div class="dash-stat-label">Niveau</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="dash-progress-card">
+        {% if next_label %}
+        <div class="dash-progress-header">
+            <span>Progression vers <strong>{{ next_label }}</strong></span>
+            <span class="dash-progress-pts"><span class="points-live">{{ "%.2f"|format(points) }}</span> / {{ next_pts }} pts</span>
+        </div>
+        <div class="dash-progress-bar" data-progress="{{ progress }}">
+            <div class="dash-progress-fill"></div>
+        </div>
+        {% if points >= next_pts %}
+        <button class="btn-level-up" id="btn-level-up">🏆 Passer au niveau {{ next_label }}</button>
+        {% else %}
+        <p class="dash-progress-hint">Il vous manque <strong>{{ "%.2f"|format(next_pts - points) }} pts</strong> pour passer au niveau suivant.</p>
+        {% endif %}
+        {% else %}
+        <div class="dash-progress-header">
+            <span>🎉 Vous avez atteint le niveau maximum : <strong>Expert</strong></span>
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+</div>
+
+<div class="dashboard-page">
+    <div class="dash-widgets">
+        <div class="dash-widget dash-widget--total">
+            <div class="dash-widget-value">{{ stats.total }}</div>
+            <div class="dash-widget-label">Objets au total</div>
+        </div>
+        <div class="dash-widget dash-widget--actif">
+            <div class="dash-widget-value">{{ stats.actifs }}</div>
+            <div class="dash-widget-label">Actifs</div>
+        </div>
+        <div class="dash-widget dash-widget--inactif">
+            <div class="dash-widget-value">{{ stats.inactifs }}</div>
+            <div class="dash-widget-label">Inactifs</div>
+        </div>
+        <div class="dash-widget dash-widget--types">
+            <div class="dash-widget-value">{{ stats.types }}</div>
+            <div class="dash-widget-label">Types distincts</div>
+        </div>
+    </div>
+
+    <div class="dash-objets-header">
+        <h2 class="dash-section-title">Objets connectés</h2>
+    </div>
+
+    <div class="objets-grid">
+        {% for objet in objets %}
+        <a href="/objet/{{ objet['id'] }}" class="objet-card objet-card--link">
+            <div class="objet-top">
+                <div class="objet-icon" aria-label="{{ objet['type'] }}">
+                    {% if objet['type'] == 'thermostat' %}🌡️
+                    {% elif objet['type'] == 'caméra' %}📷
+                    {% elif objet['type'] == 'éclairage' %}💡
+                    {% elif objet['type'] == 'serrure' %}🔒
+                    {% elif objet['type'] == 'capteur' %}📡
+                    {% elif objet['type'] == 'aspirateur' %}🤖
+                    {% elif objet['type'] == 'électroménager' %}🏠
+                    {% elif objet['type'] == 'volet' %}🪟
+                    {% elif objet['type'] == 'montre' %}⌚
+                    {% elif objet['type'] == 'énergie' %}⚡
+                    {% else %}📦{% endif %}
+                </div>
+                <span class="objet-etat {{ 'etat-actif' if objet['etat'] == 'actif' else 'etat-inactif' }}">
+                    {{ objet['etat'] }}
+                </span>
+            </div>
+            <h3 class="objet-nom">{{ objet['nom'] }}</h3>
+            <p class="objet-description">{{ objet['description'] }}</p>
+            <ul class="objet-infos">
+                <li><strong>Type</strong> {{ objet['type'] }}</li>
+                <li><strong>Marque</strong> {{ objet['marque'] }}</li>
+                {% if objet['piece'] %}
+                <li><strong>Pièce</strong> {{ objet['piece'] }}</li>
+                {% endif %}
+                <li><strong>Connectivité</strong> {{ objet['connectivite'] }}</li>
+                {% if objet['batterie'] %}
+                <li><strong>Batterie</strong> {{ objet['batterie'] }}%</li>
+                {% endif %}
+            </ul>
+        </a>
+        {% endfor %}
+    </div>
+
+</div>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+<script src="{{ url_for('static', filename='js/level.js') }}"></script>
+{% endblock %}

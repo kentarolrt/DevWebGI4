@@ -11,7 +11,7 @@ def openDB() -> sqlite3.Connection:
     return flask.g.db
 
 
-def closeDB(e = None):
+def closeDB(_ = None):
     db = flask.g.pop("db", None)
     if db is not None:
         db.close()
@@ -66,20 +66,25 @@ def initDB():
     db.commit()
 
 
-def createUser(username, password, lastname, firstname, email, age, gender, birthdate) -> tuple[bool, str]:
+TYPES_MEMBRES = ['mère', 'fils', 'fille', 'enfant']
+
+def createUser(username, password, lastname, firstname, email, age, gender, birthdate, type_membre='enfant') -> tuple[bool, str]:
     db = openDB()
 
     existing = db.execute(
-        'SELECT id FROM users WHERE username = ?', 
+        'SELECT id FROM users WHERE username = ?',
         (username,)
     ).fetchone()
 
     if existing:
         return False, 'username_taken'
-    
+
+    if type_membre not in TYPES_MEMBRES:
+        type_membre = 'enfant'
+
     db.execute(
-        'INSERT INTO users (username, password, nom, prenom, email, age, genre, date_naissance) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-        (username, generate_password_hash(password), lastname, firstname, email, age, gender, birthdate)
+        'INSERT INTO users (username, password, nom, prenom, email, age, genre, date_naissance, type_membre) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        (username, generate_password_hash(password), lastname, firstname, email, age, gender, birthdate, type_membre)
     )
 
     db.commit()
@@ -89,8 +94,8 @@ def createUser(username, password, lastname, firstname, email, age, gender, birt
 def createAdmin(username, password) -> None:
     db = openDB()
     db.execute(
-        'INSERT OR IGNORE INTO users (username, password, role) VALUES (?, ?, ?)',
-        (username, generate_password_hash(password), 'admin')
+        'INSERT OR IGNORE INTO users (username, password, role, type_membre) VALUES (?, ?, ?, ?)',
+        (username, generate_password_hash(password), 'admin', 'père')
     )
     db.commit()
 
@@ -118,7 +123,7 @@ def getUser(username: str):
         (username,)
     ).fetchone()
 
-ALLOWED_FIELDS = {'username', 'email', 'nom', 'prenom', 'age', 'genre', 'date_naissance'}
+ALLOWED_FIELDS = {'username', 'email', 'nom', 'prenom', 'age', 'genre', 'date_naissance', 'type_membre'}
 
 def updateUser(username: str, field: str, value: str) -> tuple[bool, str]:
     if field not in ALLOWED_FIELDS:
@@ -161,7 +166,64 @@ def searchObjets(query='', filtre_type='', filtre_etat='') -> list:
     sql += ' ORDER BY nom'
     return db.execute(sql, params).fetchall()
 
+def getConnectionCount(username: str) -> int:
+    db = openDB()
+    user = db.execute('SELECT id FROM users WHERE username = ?', (username,)).fetchone()
+    if not user:
+        return 0
+    row = db.execute(
+        'SELECT COUNT(*) as cnt FROM historique_connexions WHERE user_id = ?',
+        (user['id'],)
+    ).fetchone()
+    return row['cnt'] if row else 0
+
 def getTypes() -> list:
     db = openDB()
     rows = db.execute('SELECT DISTINCT type FROM objets_connectes ORDER BY type').fetchall()
     return [row['type'] for row in rows]
+
+def _computeLevel(points: float) -> str:
+    if points < 5:
+        return 'debutant'
+    elif points < 15:
+        return 'intermediaire'
+    elif points < 30:
+        return 'avance'
+    else:
+        return 'expert'
+
+def addPoints(username: str, amount: float) -> None:
+    db = openDB()
+    db.execute('UPDATE users SET points = points + ? WHERE username = ?', (amount, username))
+    db.commit()
+
+def upgradeLevel(username: str) -> tuple[bool, str]:
+    db = openDB()
+    user = db.execute('SELECT points, niveau FROM users WHERE username = ?', (username,)).fetchone()
+    if not user:
+        return False, 'user_not_found'
+    new_level = _computeLevel(user['points'])
+    levels = ['debutant', 'intermediaire', 'avance', 'expert']
+    if levels.index(new_level) <= levels.index(user['niveau']):
+        return False, 'not_enough_points'
+    db.execute('UPDATE users SET niveau = ? WHERE username = ?', (new_level, username))
+    db.commit()
+    return True, new_level
+
+def recordConnection(username: str) -> None:
+    db = openDB()
+    user = db.execute('SELECT id FROM users WHERE username = ?', (username,)).fetchone()
+    if user:
+        db.execute('INSERT INTO historique_connexions (user_id) VALUES (?)', (user['id'],))
+        db.commit()
+    addPoints(username, 0.25)
+
+def getObjet(objet_id: int):
+    db = openDB()
+    return db.execute('SELECT * FROM objets_connectes WHERE id = ?', (objet_id,)).fetchone()
+
+def getAllMembers() -> list:
+    db = openDB()
+    return db.execute(
+        'SELECT username, age, genre, date_naissance, type_membre, niveau, points FROM users ORDER BY type_membre, username'
+    ).fetchall()
