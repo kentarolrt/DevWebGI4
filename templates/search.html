@@ -7,12 +7,12 @@
     <div class="search-header">
         {% if searched %}
         <h2>
-            <span class="result-count">{{ resultats|length }}</span> résultat{{ 's' if resultats|length > 1 }} trouvé{{ 's' if resultats|length > 1 }}
+            <span class="result-count">{{ results|length }}</span> résultat{{ 's' if results|length > 1 }} trouvé{{ 's' if results|length > 1 }}
         </h2>
         <p class="search-summary">
             {% if query %}mot-clé : <strong>{{ query }}</strong>{% endif %}
-            {% if filtre_type %} · type : <strong>{{ filtre_type }}</strong>{% endif %}
-            {% if filtre_etat %} · état : <strong>{{ filtre_etat }}</strong>{% endif %}
+            {% if filter_type %} · type : <strong>{{ filter_type }}</strong>{% endif %}
+            {% if filter_status %} · état : <strong>{{ filter_status }}</strong>{% endif %}
         </p>
         {% else %}
         <h2>Rechercher un objet connecté</h2>
@@ -24,41 +24,41 @@
         <p>Utilisez la barre de recherche ci-dessus pour trouver un objet connecté.</p>
     </div>
 
-    {% elif resultats %}
-    <div class="objets-grid">
-        {% for objet in resultats %}
-        <a href="/objet/{{ objet['id'] }}" class="objet-card objet-card--link">
-            <div class="objet-top">
-                <div class="objet-icon" aria-label="{{ objet['type'] }}">
-                    {% if objet['type'] == 'thermostat' %}🌡️
-                    {% elif objet['type'] == 'caméra' %}📷
-                    {% elif objet['type'] == 'éclairage' %}💡
-                    {% elif objet['type'] == 'serrure' %}🔒
-                    {% elif objet['type'] == 'capteur' %}📡
-                    {% elif objet['type'] == 'aspirateur' %}🤖
-                    {% elif objet['type'] == 'électroménager' %}🏠
-                    {% elif objet['type'] == 'volet' %}🪟
-                    {% elif objet['type'] == 'montre' %}⌚
-                    {% elif objet['type'] == 'énergie' %}⚡
-                    {% else %}📦{% endif %}
+    {% elif results %}
+    <div class="devices-grid">
+        {% for device in results %}
+        <a href="/device/{{ device['id'] }}" class="device-card device-card--link">
+            <div class="device-top">
+                <div class="device-icon" aria-label="{{ device['type'] }}">
+                    {% if device['type'] == 'thermostat' %}<i class="fa-solid fa-temperature-half"></i>
+                    {% elif device['type'] == 'caméra' %}<i class="fa-solid fa-camera"></i>
+                    {% elif device['type'] == 'éclairage' %}<i class="fa-solid fa-lightbulb"></i>
+                    {% elif device['type'] == 'serrure' %}<i class="fa-solid fa-lock"></i>
+                    {% elif device['type'] == 'capteur' %}<i class="fa-solid fa-satellite-dish"></i>
+                    {% elif device['type'] == 'aspirateur' %}<i class="fa-solid fa-robot"></i>
+                    {% elif device['type'] == 'électroménager' %}<i class="fa-solid fa-blender"></i>
+                    {% elif device['type'] == 'volet' %}<i class="fa-solid fa-window-maximize"></i>
+                    {% elif device['type'] == 'montre' %}<i class="fa-solid fa-clock"></i>
+                    {% elif device['type'] == 'énergie' %}<i class="fa-solid fa-bolt"></i>
+                    {% else %}<i class="fa-solid fa-box"></i>{% endif %}
                 </div>
-                <span class="objet-etat {{ 'etat-actif' if objet['etat'] == 'actif' else 'etat-inactif' }}">
-                    {{ objet['etat'] }}
+                <span class="device-status {{ 'status-active' if device['status'] == 'actif' else 'status-inactive' }}">
+                    {{ device['status'] }}
                 </span>
             </div>
 
-            <h3 class="objet-nom">{{ objet['nom'] }}</h3>
-            <p class="objet-description">{{ objet['description'] }}</p>
+            <h3 class="device-name">{{ device['name'] }}</h3>
+            <p class="device-description">{{ device['description'] }}</p>
 
-            <ul class="objet-infos">
-                <li><strong>Type</strong> {{ objet['type'] }}</li>
-                <li><strong>Marque</strong> {{ objet['marque'] }}</li>
-                {% if objet['piece'] %}
-                <li><strong>Pièce</strong> {{ objet['piece'] }}</li>
+            <ul class="device-infos">
+                <li><strong>Type</strong> {{ device['type'] }}</li>
+                <li><strong>Marque</strong> {{ device['brand'] }}</li>
+                {% if device['room'] %}
+                <li><strong>Pièce</strong> {{ device['room'] }}</li>
                 {% endif %}
-                <li><strong>Connectivité</strong> {{ objet['connectivite'] }}</li>
-                {% if objet['batterie'] %}
-                <li><strong>Batterie</strong> {{ objet['batterie'] }}%</li>
+                <li><strong>Connectivité</strong> {{ device['connectivity'] }}</li>
+                {% if device['battery'] %}
+                <li><strong>Batterie</strong> {{ device['battery'] }}%</li>
                 {% endif %}
             </ul>
         </a>

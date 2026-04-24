@@ -16,10 +16,10 @@
             <div class="profile-avatar-lg">{{ user_data['username'][0] | upper }}</div>
             <div class="profile-id-info">
                 <h2 class="profile-username">{{ user_data['username'] }}</h2>
-                <span class="profile-role-badge">{{ user_data['type_membre'] or '—' }}</span>
+                <span class="profile-role-badge">{{ user_data['member_type'] or '—' }}</span>
             </div>
             <div class="profile-level-badge">
-                <span class="level-label">{{ user_data['niveau'] | capitalize }}</span>
+                <span class="level-label">{{ user_data['level'] | capitalize }}</span>
                 <span class="level-pts">{{ "%.2f"|format(user_data['points'] or 0) }} pts</span>
             </div>
         </div>
@@ -43,18 +43,18 @@
                 </div>
                 <div class="profile-field">
                     <span class="profile-field-label">Genre</span>
-                    <span class="profile-field-value" id="genre">{{ user_data['genre'] or '—' }}</span>
-                    <button class="btn-field-edit" data-field="genre">Modifier</button>
+                    <span class="profile-field-value" id="gender">{{ user_data['gender'] or '—' }}</span>
+                    <button class="btn-field-edit" data-field="gender">Modifier</button>
                 </div>
                 <div class="profile-field">
                     <span class="profile-field-label">Date de naissance</span>
-                    <span class="profile-field-value" id="date_naissance">{{ user_data['date_naissance'] or '—' }}</span>
-                    <button class="btn-field-edit" data-field="date_naissance">Modifier</button>
+                    <span class="profile-field-value" id="birthdate">{{ user_data['birthdate'] or '—' }}</span>
+                    <button class="btn-field-edit" data-field="birthdate">Modifier</button>
                 </div>
                 <div class="profile-field">
                     <span class="profile-field-label">Rôle dans la maison</span>
-                    <span class="profile-field-value" id="type_membre">{{ user_data['type_membre'] or '—' }}</span>
-                    <button class="btn-field-edit" data-field="type_membre">Modifier</button>
+                    <span class="profile-field-value" id="member_type">{{ user_data['member_type'] or '—' }}</span>
+                    <button class="btn-field-edit" data-field="member_type">Modifier</button>
                 </div>
             </div>
         </div>
@@ -68,19 +68,28 @@
             <div class="profile-fields">
                 <div class="profile-field">
                     <span class="profile-field-label">Nom</span>
-                    <span class="profile-field-value" id="nom">{{ user_data['nom'] or '—' }}</span>
-                    <button class="btn-field-edit" data-field="nom">Modifier</button>
+                    <span class="profile-field-value" id="lastname">{{ user_data['lastname'] or '—' }}</span>
+                    <button class="btn-field-edit" data-field="lastname">Modifier</button>
                 </div>
                 <div class="profile-field">
                     <span class="profile-field-label">Prénom</span>
-                    <span class="profile-field-value" id="prenom">{{ user_data['prenom'] or '—' }}</span>
-                    <button class="btn-field-edit" data-field="prenom">Modifier</button>
+                    <span class="profile-field-value" id="firstname">{{ user_data['firstname'] or '—' }}</span>
+                    <button class="btn-field-edit" data-field="firstname">Modifier</button>
                 </div>
                 <div class="profile-field">
                     <span class="profile-field-label">Email</span>
                     <span class="profile-field-value" id="email">{{ user_data['email'] or '—' }}</span>
                     <button class="btn-field-edit" data-field="email">Modifier</button>
                 </div>
+            </div>
+            <div class="profile-delete-zone">
+                <form action="/profile/delete" method="post"
+                      onsubmit="return confirm('Supprimer votre compte ? Cette action est irréversible.')">
+                    <button type="submit" class="btn-delete-account">
+                        <i class="fa-solid fa-trash-can"></i>
+                        Supprimer mon compte
+                    </button>
+                </form>
             </div>
         </div>
 

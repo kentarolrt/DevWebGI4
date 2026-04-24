@@ -30,9 +30,9 @@ objets = [
 with app.app_context():
     db = utils.openDB()
     db.executemany(
-        '''INSERT INTO objets_connectes 
-           (nom, description, type, marque, etat, connectivite, batterie, piece) 
+        '''INSERT INTO devices 
+           (name, description, type, brand, status, connectivity, battery, room) 
            VALUES (?, ?, ?, ?, ?, ?, ?, ?)''',
-        objets
+        devices
     )
     db.commit()

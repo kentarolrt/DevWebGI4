@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <title>{% block title %}DevWeb{% endblock %}</title>
 </head>
 <body>
@@ -31,17 +32,17 @@
                     </option>
                 {% endfor %}
             </select>
-            <select name="etat">
+            <select name="status">
                 <option value="">Tous les états</option>
-                <option value="actif"   {% if request.args.get('etat') == 'actif'   %}selected{% endif %}>Actif</option>
-                <option value="inactif" {% if request.args.get('etat') == 'inactif' %}selected{% endif %}>Inactif</option>
+                <option value="actif"   {% if request.args.get('status') == 'actif'   %}selected{% endif %}>Actif</option>
+                <option value="inactif" {% if request.args.get('status') == 'inactif' %}selected{% endif %}>Inactif</option>
             </select>
             <button type="submit">Rechercher</button>
         </form>
 
         <nav>
             {% if user %}
-                <a href="/membres" class="btn-membres">Membres</a>
+                <a href="/members" class="btn-members">Membres</a>
                 <a href="/profile" class="btn-profile">{{ user }}</a>
                 <a href="/logout" class="btn-logout">Déconnexion</a>
             {% else %}

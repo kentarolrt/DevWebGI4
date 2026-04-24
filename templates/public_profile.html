@@ -1,25 +1,25 @@
 {% extends 'base.html' %}
 
-{% block title %}{{ membre['username'] }} - OsmHome{% endblock %}
+{% block title %}{{ member['username'] }} - OsmHome{% endblock %}
 
 {% block content %}
 <div class="profile-page">
 
     <div class="profile-back">
-        <a href="/membres">← Membres de la maison</a>
+        <a href="/members">← Membres de la maison</a>
     </div>
 
     <div class="profile-layout-main">
 
         <div class="profile-id-card">
-            <div class="profile-avatar-lg">{{ membre['username'][0] | upper }}</div>
+            <div class="profile-avatar-lg">{{ member['username'][0] | upper }}</div>
             <div class="profile-id-info">
-                <h2 class="profile-username">{{ membre['username'] }}</h2>
-                <span class="profile-role-badge">{{ membre['type_membre'] or '—' }}</span>
+                <h2 class="profile-username">{{ member['username'] }}</h2>
+                <span class="profile-role-badge">{{ member['member_type'] or '—' }}</span>
             </div>
             <div class="profile-level-badge">
-                <span class="level-label">{{ membre['niveau'] | capitalize }}</span>
-                <span class="level-pts">{{ "%.2f"|format(membre['points'] or 0) }} pts</span>
+                <span class="level-label">{{ member['level'] | capitalize }}</span>
+                <span class="level-pts">{{ "%.2f"|format(member['points'] or 0) }} pts</span>
             </div>
         </div>
 
@@ -32,32 +32,32 @@
             <div class="profile-fields profile-fields--readonly">
                 <div class="profile-field">
                     <span class="profile-field-label">Pseudonyme</span>
-                    <span class="profile-field-value">{{ membre['username'] }}</span>
+                    <span class="profile-field-value">{{ member['username'] }}</span>
                 </div>
                 <div class="profile-field">
                     <span class="profile-field-label">Âge</span>
-                    <span class="profile-field-value">{{ membre['age'] or '—' }}</span>
+                    <span class="profile-field-value">{{ member['age'] or '—' }}</span>
                 </div>
                 <div class="profile-field">
                     <span class="profile-field-label">Genre</span>
-                    <span class="profile-field-value">{{ membre['genre'] or '—' }}</span>
+                    <span class="profile-field-value">{{ member['gender'] or '—' }}</span>
                 </div>
                 <div class="profile-field">
                     <span class="profile-field-label">Date de naissance</span>
-                    <span class="profile-field-value">{{ membre['date_naissance'] or '—' }}</span>
+                    <span class="profile-field-value">{{ member['birthdate'] or '—' }}</span>
                 </div>
                 <div class="profile-field">
                     <span class="profile-field-label">Rôle dans la maison</span>
-                    <span class="profile-field-value">{{ membre['type_membre'] or '—' }}</span>
+                    <span class="profile-field-value">{{ member['member_type'] or '—' }}</span>
                 </div>
                 <div class="profile-field">
                     <span class="profile-field-label">Niveau</span>
-                    <span class="profile-field-value">{{ membre['niveau'] | capitalize }}</span>
+                    <span class="profile-field-value">{{ member['level'] | capitalize }}</span>
                 </div>
             </div>
         </div>
 
-        {% if is_admin %}
+    {% if is_admin %}
         <!-- Partie privée (admin seulement) -->
         <div class="profile-section profile-section--private">
             <div class="profile-section-header">
@@ -67,19 +67,53 @@
             <div class="profile-fields profile-fields--readonly">
                 <div class="profile-field">
                     <span class="profile-field-label">Nom</span>
-                    <span class="profile-field-value">{{ membre['nom'] or '—' }}</span>
+                    <span class="profile-field-value">{{ member['lastname'] or '—' }}</span>
                 </div>
                 <div class="profile-field">
                     <span class="profile-field-label">Prénom</span>
-                    <span class="profile-field-value">{{ membre['prenom'] or '—' }}</span>
+                    <span class="profile-field-value">{{ member['firstname'] or '—' }}</span>
                 </div>
                 <div class="profile-field">
                     <span class="profile-field-label">Email</span>
-                    <span class="profile-field-value">{{ membre['email'] or '—' }}</span>
+                    <span class="profile-field-value">{{ member['email'] or '—' }}</span>
                 </div>
             </div>
         </div>
-        {% endif %}
+    {% endif %}
+
+    {% if is_admin and not is_owner %}
+        <div class="profile-section profile-section--danger">
+            <div class="profile-section-header">
+                <h3>Gestion du compte</h3>
+            </div>
+            <div class="profile-delete-zone">
+                <form action="/admin/delete/{{ member['username'] }}" method="post"
+                      onsubmit="return confirm('Supprimer le compte de {{ member.username }} ? Cette action est irréversible.')">
+                    <button type="submit" class="btn-delete-account">
+                        <i class="fa-solid fa-trash-can"></i>
+                        Supprimer le compte
+                    </button>
+                </form>
+            </div>
+        </div>
+    {% endif %}
+
+    {% if is_owner %}
+        <div class="profile-section profile-section--danger">
+            <div class="profile-section-header">
+                <h3>Mon compte</h3>
+            </div>
+            <div class="profile-delete-zone">
+                <form action="/profile/delete" method="post"
+                      onsubmit="return confirm('Supprimer votre compte ? Cette action est irréversible.')">
+                    <button type="submit" class="btn-delete-account">
+                        <i class="fa-solid fa-trash-can"></i>
+                        Supprimer mon compte
+                    </button>
+                </form>
+            </div>
+        </div>
+    {% endif %}
 
     </div>
 </div>

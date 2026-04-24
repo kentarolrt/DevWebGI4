@@ -40,21 +40,21 @@
 
     <div class="dash-stats">
         <div class="dash-stat-card">
-            <div class="dash-stat-icon">⭐</div>
+            <div class="dash-stat-icon"><i class="fa-solid fa-star"></i></div>
             <div>
                 <div class="dash-stat-value points-live">{{ "%.2f"|format(points) }}</div>
                 <div class="dash-stat-label">Points</div>
             </div>
         </div>
         <div class="dash-stat-card">
-            <div class="dash-stat-icon">🔗</div>
+            <div class="dash-stat-icon"><i class="fa-solid fa-link"></i></div>
             <div>
                 <div class="dash-stat-value">{{ connections }}</div>
                 <div class="dash-stat-label">Connexions</div>
             </div>
         </div>
         <div class="dash-stat-card">
-            <div class="dash-stat-icon">🏅</div>
+            <div class="dash-stat-icon"><i class="fa-solid fa-medal"></i></div>
             <div>
                 <div class="dash-stat-value level-live">{{ level_label }}</div>
                 <div class="dash-stat-label">Niveau</div>
@@ -72,13 +72,13 @@
             <div class="dash-progress-fill"></div>
         </div>
         {% if points >= next_pts %}
-        <button class="btn-level-up" id="btn-level-up">🏆 Passer au niveau {{ next_label }}</button>
+        <button class="btn-level-up" id="btn-level-up"><i class="fa-solid fa-trophy"></i> Passer au niveau {{ next_label }}</button>
         {% else %}
         <p class="dash-progress-hint">Il vous manque <strong>{{ "%.2f"|format(next_pts - points) }} pts</strong> pour passer au niveau suivant.</p>
         {% endif %}
         {% else %}
         <div class="dash-progress-header">
-            <span>🎉 Vous avez atteint le niveau maximum : <strong>Expert</strong></span>
+            <span><i class="fa-solid fa-star"></i> Vous avez atteint le niveau maximum : <strong>Expert</strong></span>
         </div>
         {% endif %}
     </div>
@@ -92,12 +92,12 @@
             <div class="dash-widget-value">{{ stats.total }}</div>
             <div class="dash-widget-label">Objets au total</div>
         </div>
-        <div class="dash-widget dash-widget--actif">
-            <div class="dash-widget-value">{{ stats.actifs }}</div>
+        <div class="dash-widget dash-widget--active">
+            <div class="dash-widget-value">{{ stats.active }}</div>
             <div class="dash-widget-label">Actifs</div>
         </div>
-        <div class="dash-widget dash-widget--inactif">
-            <div class="dash-widget-value">{{ stats.inactifs }}</div>
+        <div class="dash-widget dash-widget--inactive">
+            <div class="dash-widget-value">{{ stats.inactive }}</div>
             <div class="dash-widget-label">Inactifs</div>
         </div>
         <div class="dash-widget dash-widget--types">
@@ -106,42 +106,42 @@
         </div>
     </div>
 
-    <div class="dash-objets-header">
+    <div class="dash-devices-header">
         <h2 class="dash-section-title">Objets connectés</h2>
     </div>
 
-    <div class="objets-grid">
-        {% for objet in objets %}
-        <a href="/objet/{{ objet['id'] }}" class="objet-card objet-card--link">
-            <div class="objet-top">
-                <div class="objet-icon" aria-label="{{ objet['type'] }}">
-                    {% if objet['type'] == 'thermostat' %}🌡️
-                    {% elif objet['type'] == 'caméra' %}📷
-                    {% elif objet['type'] == 'éclairage' %}💡
-                    {% elif objet['type'] == 'serrure' %}🔒
-                    {% elif objet['type'] == 'capteur' %}📡
-                    {% elif objet['type'] == 'aspirateur' %}🤖
-                    {% elif objet['type'] == 'électroménager' %}🏠
-                    {% elif objet['type'] == 'volet' %}🪟
-                    {% elif objet['type'] == 'montre' %}⌚
-                    {% elif objet['type'] == 'énergie' %}⚡
-                    {% else %}📦{% endif %}
+    <div class="devices-grid">
+        {% for device in devices %}
+        <a href="/device/{{ device['id'] }}" class="device-card device-card--link">
+            <div class="device-top">
+                <div class="device-icon" aria-label="{{ device['type'] }}">
+                    {% if device['type'] == 'thermostat' %}<i class="fa-solid fa-temperature-half"></i>
+                    {% elif device['type'] == 'caméra' %}<i class="fa-solid fa-camera"></i>
+                    {% elif device['type'] == 'éclairage' %}<i class="fa-solid fa-lightbulb"></i>
+                    {% elif device['type'] == 'serrure' %}<i class="fa-solid fa-lock"></i>
+                    {% elif device['type'] == 'capteur' %}<i class="fa-solid fa-satellite-dish"></i>
+                    {% elif device['type'] == 'aspirateur' %}<i class="fa-solid fa-robot"></i>
+                    {% elif device['type'] == 'électroménager' %}<i class="fa-solid fa-blender"></i>
+                    {% elif device['type'] == 'volet' %}<i class="fa-solid fa-window-maximize"></i>
+                    {% elif device['type'] == 'montre' %}<i class="fa-solid fa-clock"></i>
+                    {% elif device['type'] == 'énergie' %}<i class="fa-solid fa-bolt"></i>
+                    {% else %}<i class="fa-solid fa-box"></i>{% endif %}
                 </div>
-                <span class="objet-etat {{ 'etat-actif' if objet['etat'] == 'actif' else 'etat-inactif' }}">
-                    {{ objet['etat'] }}
+                <span class="device-status {{ 'status-active' if device['status'] == 'actif' else 'status-inactive' }}">
+                    {{ device['status'] }}
                 </span>
             </div>
-            <h3 class="objet-nom">{{ objet['nom'] }}</h3>
-            <p class="objet-description">{{ objet['description'] }}</p>
-            <ul class="objet-infos">
-                <li><strong>Type</strong> {{ objet['type'] }}</li>
-                <li><strong>Marque</strong> {{ objet['marque'] }}</li>
-                {% if objet['piece'] %}
-                <li><strong>Pièce</strong> {{ objet['piece'] }}</li>
+            <h3 class="device-name">{{ device['name'] }}</h3>
+            <p class="device-description">{{ device['description'] }}</p>
+            <ul class="device-infos">
+                <li><strong>Type</strong> {{ device['type'] }}</li>
+                <li><strong>Marque</strong> {{ device['brand'] }}</li>
+                {% if device['room'] %}
+                <li><strong>Pièce</strong> {{ device['room'] }}</li>
                 {% endif %}
-                <li><strong>Connectivité</strong> {{ objet['connectivite'] }}</li>
-                {% if objet['batterie'] %}
-                <li><strong>Batterie</strong> {{ objet['batterie'] }}%</li>
+                <li><strong>Connectivité</strong> {{ device['connectivity'] }}</li>
+                {% if device['battery'] %}
+                <li><strong>Batterie</strong> {{ device['battery'] }}%</li>
                 {% endif %}
             </ul>
         </a>

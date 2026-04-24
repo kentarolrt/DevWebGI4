@@ -3,23 +3,23 @@
 {% block title %}Membres - OsmHome{% endblock %}
 
 {% block content %}
-<div class="membres-page">
+<div class="members-page">
 
-    <div class="membres-header">
+    <div class="members-header">
         <h2>Membres de la maison</h2>
-        <p>{{ membres | length }} membre{{ 's' if membres | length > 1 }}</p>
+        <p>{{ members | length }} membre{{ 's' if members | length > 1 }}</p>
     </div>
 
-    <div class="membres-grid">
-        {% for m in membres %}
-        <a href="/profil/{{ m['username'] }}" class="membre-card">
-            <div class="membre-avatar">{{ m['username'][0] | upper }}</div>
-            <div class="membre-info">
-                <h3 class="membre-username">{{ m['username'] }}</h3>
-                <span class="membre-role">{{ m['type_membre'] or '—' }}</span>
+    <div class="members-grid">
+        {% for m in members %}
+        <a href="/member/{{ m['username'] }}" class="member-card">
+            <div class="member-avatar">{{ m['username'][0] | upper }}</div>
+            <div class="member-info">
+                <h3 class="member-username">{{ m['username'] }}</h3>
+                <span class="member-role">{{ m['member_type'] or '—' }}</span>
             </div>
-            <div class="membre-niveau">
-                <span class="niveau-badge niveau-{{ m['niveau'] }}">{{ m['niveau'] | capitalize }}</span>
+            <div class="membre-level">
+                <span class="level-badge level-{{ m['level'] }}">{{ m['level'] | capitalize }}</span>
             </div>
         </a>
         {% endfor %}

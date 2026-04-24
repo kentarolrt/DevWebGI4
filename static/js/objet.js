@@ -1,8 +1,8 @@
-const objetId = document.getElementById('objet-id').value;
+const deviceId = document.getElementById('device-id').value;
 const msg = document.getElementById('points-msg');
 
 if (msg) {
-    fetch('/api/consult/' + objetId, { method: 'POST' })
+    fetch('/api/consult/' + deviceId, { method: 'POST' })
         .then(r => r.json())
         .then(data => {
             if (data.ok) {

@@ -24,8 +24,8 @@ def signup():
         gender    = flask.request.form.get('gender', '').strip()
         birthdate = flask.request.form.get('birthdate', '').strip()
 
-        type_membre = flask.request.form.get('type_membre', 'enfant').strip()
-        success, reason = utils.createUser(username, password, lastname, firstname, email, age, gender, birthdate, type_membre)
+        member_type = flask.request.form.get('member_type', 'fils').strip()
+        success, reason = utils.createUser(username, password, lastname, firstname, email, age, gender, birthdate, member_type)
 
         if success:
             flask.session['username'] = username
@@ -62,20 +62,20 @@ def dashboard():
 
     user_data   = utils.getUser(flask.session['username'])
     connections = utils.getConnectionCount(flask.session['username'])
-    objets      = utils.searchObjets('', '', '')
+    devices     = utils.searchDevices('', '', '')
 
-    total    = len(objets)
-    actifs   = sum(1 for o in objets if o['etat'] == 'actif')
-    inactifs = total - actifs
-    nb_types = len(set(o['type'] for o in objets))
+    total    = len(devices)
+    active   = sum(1 for o in devices if o['status'] == 'actif')
+    inactive = total - active
+    nb_types = len(set(o['type'] for o in devices))
 
     resp = flask.make_response(flask.render_template(
         'dashboard.html',
         user=flask.session.get('username'),
         user_data=user_data,
         connections=connections,
-        objets=objets,
-        stats={'total': total, 'actifs': actifs, 'inactifs': inactifs, 'types': nb_types}
+        devices=devices,
+        stats={'total': total, 'active': active, 'inactive': inactive, 'types': nb_types}
     ))
     resp.headers['Cache-Control'] = 'no-store'
     return resp
@@ -99,7 +99,7 @@ def api_points():
     if 'username' not in flask.session:
         return flask.jsonify({'ok': False})
     user_data = utils.getUser(flask.session['username'])
-    return flask.jsonify({'ok': True, 'points': float(user_data['points']), 'level': user_data['niveau']})
+    return flask.jsonify({'ok': True, 'points': float(user_data['points']), 'level': user_data['level']})
 
 @app.route('/profile')
 def profil():
@@ -130,6 +130,15 @@ def profile_update():
     else:
         return flask.jsonify({'ok': False, 'error': reason})
 
+@app.route('/profile/delete', methods=['POST'])
+def profile_delete():
+    if 'username' not in flask.session:
+        return flask.redirect('/login')
+    username = flask.session.get('username')
+    utils.deleteUser(username)
+    flask.session.clear()
+    return flask.redirect('/')
+
 @app.route('/logout')
 def logout():
     flask.session.clear()
@@ -138,37 +147,37 @@ def logout():
 @app.route('/search')
 def search():
     query       = flask.request.args.get('q', '').strip()
-    filtre_type = flask.request.args.get('type', '').strip()
-    filtre_etat = flask.request.args.get('etat', '').strip()
+    filter_type = flask.request.args.get('type', '').strip()
+    filter_status = flask.request.args.get('status', '').strip()
 
-    searched  = bool(query or filtre_type or filtre_etat)
-    resultats = utils.searchObjets(query, filtre_type, filtre_etat) if searched else None
+    searched  = bool(query or filter_type or filter_status)
+    results   = utils.searchDevices(query, filter_type, filter_status) if searched else None
     types     = utils.getTypes()
 
     return flask.render_template(
         'search.html',
         user=flask.session.get('username'),
-        resultats=resultats,
+        results=results,
         types=types,
         query=query,
-        filtre_type=filtre_type,
-        filtre_etat=filtre_etat,
+        filter_type=filter_type,
+        filter_status=filter_status,
         searched=searched
     )
 
-@app.route('/membres')
+@app.route('/members')
 def membres():
     if 'username' not in flask.session:
         return flask.redirect('/login')
     all_members = utils.getAllMembers()
-    return flask.render_template('membres.html', user=flask.session.get('username'), membres=all_members)
+    return flask.render_template('membres.html', user=flask.session.get('username'), members=all_members)
 
-@app.route('/profil/<username>')
+@app.route('/member/<username>')
 def profil_public(username):
     if 'username' not in flask.session:
         return flask.redirect('/login')
-    membre = utils.getUser(username)
-    if not membre:
+    member = utils.getUser(username)
+    if not member:
         flask.abort(404)
     viewer = flask.session.get('username')
     is_owner = (viewer == username)
@@ -176,33 +185,48 @@ def profil_public(username):
     return flask.render_template(
         'public_profile.html',
         user=viewer,
-        membre=membre,
+        member=member,
         is_owner=is_owner,
         is_admin=is_admin
     )
 
-@app.route('/objet/<int:objet_id>')
-def objet_detail(objet_id):
-    objet = utils.getObjet(objet_id)
-    if not objet:
-        flask.abort(404)
-    return flask.render_template('objet.html', user=flask.session.get('username'), objet=objet)
+@app.route('/admin/delete/<username>', methods=['POST'])
+def admin_delete_user(username):
+    if 'username' not in flask.session:
+        return flask.redirect('/login')
+    viewer = flask.session.get('username')
+    viewer_data = utils.getUser(viewer)
+    if not viewer_data or viewer_data['role'] != 'admin':
+        flask.abort(403)
+    if viewer == username:
+        flask.abort(403)
+    success, _ = utils.deleteUser(username)
+    if not success:
+        flask.abort(400)
+    return flask.redirect('/members')
 
-@app.route('/api/consult/<int:objet_id>', methods=['POST'])
-def api_consult(objet_id):
+@app.route('/device/<int:device_id>')
+def device_detail(device_id):
+    device = utils.getDevice(device_id)
+    if not device:
+        flask.abort(404)
+    return flask.render_template('objet.html', user=flask.session.get('username'), device=device)
+
+@app.route('/api/consult/<int:device_id>', methods=['POST'])
+def api_consult(device_id):
     if 'username' not in flask.session:
         return flask.jsonify({'ok': False})
-    objet = utils.getObjet(objet_id)
-    if not objet:
+    device = utils.getDevice(device_id)
+    if not device:
         return flask.jsonify({'ok': False})
     utils.addPoints(flask.session['username'], 0.50)
     user_data  = utils.getUser(flask.session['username'])
     new_points = float(user_data['points'])
     socket.emit('points_update', {
         'points': new_points,
-        'level': user_data['niveau']
+        'level': user_data['level']
     }, room=flask.session['username'])
-    return flask.jsonify({'ok': True, 'points': new_points, 'level': user_data['niveau']})
+    return flask.jsonify({'ok': True, 'points': new_points, 'level': user_data['level']})
 
 @socket.on('join')
 def on_join():
@@ -218,7 +242,6 @@ def inject_types():
 
 with app.app_context():
     utils.initDB()
-    utils.createAdmin('admin', 'admin1234')
 
 if __name__ == '__main__':
     socket.run(app, port=5500)
