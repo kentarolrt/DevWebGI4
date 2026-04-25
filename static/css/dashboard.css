@@ -1,0 +1,78 @@
+/* ── Dashboard hero ──────────────────────────────────────────── */
+.dash-hero { background: linear-gradient(135deg, #1c2131 0%, #1e3a5f 100%); padding: 2.5rem 0; margin-bottom: 2rem; }
+.dash-hero .dashboard-page { margin-top: 0; margin-bottom: 0; }
+
+.dashboard-page { width: min(1000px, 92%); margin: 0 auto 3rem; }
+
+.dash-welcome {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem 1.8rem;
+  margin-bottom: 1.5rem;
+  backdrop-filter: blur(6px);
+}
+.dash-avatar { width: 56px; height: 56px; border-radius: 50%; background: rgba(26,115,232,0.22); color: #8ab4f8; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 700; flex-shrink: 0; }
+.dash-welcome-text h1 { font-size: 1.35rem; color: var(--white); margin-bottom: 0.15rem; }
+.dash-welcome-text p  { color: rgba(255,255,255,0.60); margin: 0; font-size: 0.9rem; }
+
+/* ── Stat cards (hero area) ──────────────────────────────────── */
+.dash-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+.dash-stat-card { background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.10); border-radius: var(--radius-lg); backdrop-filter: blur(6px); padding: 1.2rem 1.4rem; display: flex; align-items: center; gap: 1rem; }
+.dash-stat-icon { font-size: 1.6rem; line-height: 1; }
+.dash-stat-icon .fa-star  { color: #f4b400; }
+.dash-stat-icon .fa-link  { color: #4fc3f7; }
+.dash-stat-icon .fa-medal { color: #cd7f32; }
+.dash-stat-value { font-size: 1.45rem; font-weight: 700; color: var(--white); line-height: 1; margin-bottom: 0.18rem; }
+.dash-stat-label { font-size: 0.82rem; color: rgba(255,255,255,0.56); }
+
+/* ── Progress bar ────────────────────────────────────────────── */
+.dash-progress-card { background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.10); border-radius: var(--radius-lg); backdrop-filter: blur(6px); padding: 1.2rem 1.4rem; }
+.dash-progress-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; font-size: 0.92rem; color: rgba(255,255,255,0.88); }
+.dash-progress-pts    { color: rgba(255,255,255,0.52); font-size: 0.84rem; }
+.dash-progress-bar    { height: 7px; background: rgba(255,255,255,0.12); border-radius: 999px; overflow: hidden; margin-bottom: 0.6rem; }
+.dash-progress-fill   { height: 100%; background: linear-gradient(90deg, var(--primary), var(--accent-2)); border-radius: 999px; transition: width 0.5s ease; }
+.dash-progress-hint   { margin: 0; font-size: 0.82rem; color: rgba(255,255,255,0.52); }
+
+/* ── Widget counters ─────────────────────────────────────────── */
+.dash-widgets { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+.dash-widget { background: var(--surface); border: 1px solid var(--border); border-left-width: 3px; border-radius: var(--radius-lg); box-shadow: var(--shadow); padding: 1.2rem 1.4rem; }
+.dash-widget--total   { border-left-color: var(--dark); }
+.dash-widget--active  { border-left-color: var(--accent-2); }
+.dash-widget--inactive{ border-left-color: var(--muted); }
+.dash-widget--types   { border-left-color: var(--primary); }
+.dash-widget-value    { font-size: 1.8rem; font-weight: 700; color: var(--dark); line-height: 1; margin-bottom: 0.28rem; }
+.dash-widget--active .dash-widget-value { color: var(--accent-2); }
+.dash-widget--types  .dash-widget-value { color: var(--primary); }
+.dash-widget-label   { font-size: 0.8rem; color: var(--muted); font-weight: 500; }
+
+.dash-devices-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+.dash-section-title  { font-size: 1rem; color: var(--dark); font-weight: 600; margin: 0; }
+.dash-voir-tout      { font-size: 0.85rem; font-weight: 600; color: var(--primary); }
+.dash-voir-tout:hover { text-decoration: underline; }
+
+/* ── Level up button ─────────────────────────────────────────── */
+.btn-level-up { display: inline-block; margin-top: 1rem; padding: 0.6rem 1.4rem; background: var(--primary); color: var(--white); font-weight: 600; font-size: 0.9rem; border: none; border-radius: var(--radius); cursor: pointer; transition: background 0.2s, box-shadow 0.2s, transform 0.15s; font-family: inherit; }
+.btn-level-up:hover    { background: var(--primary-hover); box-shadow: 0 2px 8px rgba(26,115,232,0.35); transform: translateY(-1px); }
+.btn-level-up:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+/* ── Responsive ──────────────────────────────────────────────── */
+@media (max-width: 992px) { .dash-widgets { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 768px) {
+  .dash-stats { grid-template-columns: 1fr; }
+  .dash-widgets { grid-template-columns: repeat(2, 1fr); }
+  .dash-welcome { flex-direction: column; text-align: center; }
+}
+@media (max-width: 480px) {
+  .dash-hero { padding: 1.5rem 0; }
+  .dash-welcome { padding: 1.1rem 1.2rem; gap: 0.9rem; }
+  .dash-welcome-text h1 { font-size: 1.1rem; }
+  .dash-stats { gap: 0.7rem; }
+  .dash-widgets { grid-template-columns: 1fr; gap: 0.7rem; }
+  .dash-widget-value { font-size: 1.5rem; }
+  .dashboard-page { width: 95%; }
+  .dash-progress-header { flex-direction: column; gap: 0.3rem; align-items: flex-start; }
+}

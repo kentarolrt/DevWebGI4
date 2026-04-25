@@ -1,0 +1,24 @@
+/* ── Device / Service detail page ───────────────────────────── */
+.device-detail-page { max-width: 620px; margin: 2.5rem auto; padding: 0 1.5rem 3rem; }
+.device-detail-back { display: inline-block; margin-bottom: 1.5rem; color: var(--primary); font-size: 0.9rem; font-weight: 500; transition: opacity 0.15s; }
+.device-detail-back:hover { opacity: 0.75; }
+
+.device-detail-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow); padding: 2rem 2.2rem; }
+.device-detail-top  { display: flex; align-items: center; gap: 1.2rem; margin-bottom: 1.2rem; }
+
+.device-icon--lg { font-size: 2.3rem; width: 62px; height: 62px; border-radius: 14px; background: var(--primary-light); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+.device-detail-name        { font-size: 1.4rem; font-weight: 700; margin-bottom: 0.25rem; }
+.device-detail-description { color: var(--muted); margin-bottom: 1.5rem; font-size: 0.95rem; line-height: 1.6; }
+
+.device-detail-infos { list-style: none; margin-bottom: 1.5rem; }
+.device-detail-infos li { display: flex; justify-content: space-between; padding: 0.6rem 0; border-bottom: 1px solid var(--border); font-size: 0.93rem; }
+.device-detail-infos li:last-child { border-bottom: none; }
+.device-detail-infos li span { color: var(--muted); }
+
+.device-detail-points { text-align: center; color: var(--accent-2); font-weight: 600; font-size: 0.92rem; margin-top: 0.5rem; }
+
+@media (max-width: 480px) {
+  .device-detail-page { padding: 0 0.75rem 2rem; margin-top: 1.5rem; }
+  .device-detail-card { padding: 1.25rem; }
+}

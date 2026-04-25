@@ -1,0 +1,14 @@
+/* ── Admin page ──────────────────────────────────────────────── */
+.admin-page { max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
+
+.admin-table-wrap { overflow-x: auto; border-radius: var(--radius-lg); box-shadow: var(--shadow); background: var(--surface); }
+.admin-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+.admin-table thead tr { background: var(--primary-light); color: var(--primary); }
+.admin-table th { padding: 0.85rem 1.1rem; text-align: left; font-weight: 600; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.04em; }
+.admin-table td { padding: 0.75rem 1.1rem; border-top: 1px solid var(--border); vertical-align: middle; }
+.admin-table tbody tr:hover { background: var(--bg); }
+
+.admin-user-link { display: inline-flex; align-items: center; gap: 0.5rem; color: var(--dark); text-decoration: none; font-weight: 500; }
+.admin-user-link:hover { color: var(--primary); }
+
+.stat-num { font-weight: 600; color: var(--dark); text-align: center; }

@@ -1,6 +1,10 @@
 {% extends 'base.html' %}
 
 {% block title %}{{ service['name'] }} - OsmHome{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/devices.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/device.css') }}">
+{% endblock %}
 
 {% block content %}
 <div class="device-detail-page">

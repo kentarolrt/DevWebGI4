@@ -1,0 +1,55 @@
+/* ── Device card grid (shared: dashboard, search, services) ──── */
+.devices-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; }
+
+.device-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  padding: 1.25rem;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+.device-card:hover { box-shadow: var(--shadow-md); transform: translateY(-3px); }
+
+.device-card--link { display: block; text-decoration: none; color: inherit; }
+
+.device-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.9rem; }
+
+.device-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 10px;
+  background: var(--primary-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+}
+
+.device-status { padding: 0.22rem 0.65rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+
+.device-name        { font-size: 1rem; font-weight: 600; color: var(--dark); margin-bottom: 0.32rem; }
+.device-description { font-size: 0.86rem; color: var(--muted); margin-bottom: 0.9rem; line-height: 1.5; }
+
+.device-infos { list-style: none; padding: 0; margin: 0; }
+.device-infos li { display: flex; justify-content: space-between; padding: 0.3rem 0; font-size: 0.84rem; color: var(--muted); border-bottom: 1px solid var(--border); }
+.device-infos li:last-child { border-bottom: none; }
+.device-infos strong { color: var(--dark); font-weight: 500; }
+
+.no-results { text-align: center; padding: 4rem 2rem; color: var(--muted); font-size: 1rem; }
+
+/* Device icon colors */
+.device-icon .fa-temperature-half { color: #e53935; }
+.device-icon .fa-camera           { color: #546e7a; }
+.device-icon .fa-lightbulb        { color: #fdd835; }
+.device-icon .fa-lock             { color: #8d6e63; }
+.device-icon .fa-satellite-dish   { color: #42a5f5; }
+.device-icon .fa-robot            { color: #26a69a; }
+.device-icon .fa-blender          { color: #7e57c2; }
+.device-icon .fa-window-maximize  { color: #78909c; }
+.device-icon .fa-clock            { color: #ec407a; }
+.device-icon .fa-bolt             { color: #ffca28; }
+.device-icon .fa-box              { color: #90a4ae; }
+
+@media (max-width: 992px) { .devices-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 480px) { .devices-grid { grid-template-columns: 1fr; gap: 0.9rem; } }

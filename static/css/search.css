@@ -1,0 +1,8 @@
+/* ── Search / Services results page ─────────────────────────── */
+.search-page   { width: min(1200px, 92%); margin: 2rem auto 4rem; }
+.search-header { margin-bottom: 2rem; }
+.search-header h2 { font-size: 1.55rem; color: var(--dark); }
+.result-count  { color: var(--primary); }
+.search-summary { color: var(--muted); font-size: 0.92rem; margin-top: 0.3rem; }
+
+@media (max-width: 480px) { .search-page { width: 95%; margin-top: 1.5rem; } }
