@@ -1,11 +1,46 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin - DevWeb</title>
-</head>
-<body>
-    
-</body>
-</html>
+{% extends 'base.html' %}
+
+{% block title %}Administration - OsmHome{% endblock %}
+
+{% block content %}
+<div class="admin-page">
+
+    <div class="members-header">
+        <h2><i class="fa-solid fa-chart-bar"></i> Tableau de bord admin</h2>
+        <p>{{ stats | length }} utilisateur{{ 's' if stats | length > 1 }}</p>
+    </div>
+
+    <div class="admin-table-wrap">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Utilisateur</th>
+                    <th>Rôle</th>
+                    <th>Niveau</th>
+                    <th>Points</th>
+                    <th><i class="fa-solid fa-right-to-bracket"></i> Accès</th>
+                    <th><i class="fa-solid fa-bolt"></i> Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in stats %}
+                <tr>
+                    <td>
+                        <a href="/member/{{ s['username'] }}" class="admin-user-link">
+                            <span class="member-avatar small">{{ s['username'][0] | upper }}</span>
+                            {{ s['username'] }}
+                        </a>
+                    </td>
+                    <td>{{ s['member_type'] or '—' }}</td>
+                    <td><span class="level-badge level-{{ s['level'] }}">{{ s['level'] | capitalize }}</span></td>
+                    <td>{{ "%.2f"|format(s['points']) }}</td>
+                    <td class="stat-num">{{ s['connection_count'] }}</td>
+                    <td class="stat-num">{{ s['actions'] or 0 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+{% endblock %}

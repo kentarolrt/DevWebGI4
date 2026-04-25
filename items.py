@@ -33,6 +33,6 @@ with app.app_context():
         '''INSERT INTO devices 
            (name, description, type, brand, status, connectivity, battery, room) 
            VALUES (?, ?, ?, ?, ?, ?, ?, ?)''',
-        devices
+        objets
     )
     db.commit()

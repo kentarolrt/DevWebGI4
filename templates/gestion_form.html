@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ 'Modifier' if device else 'Ajouter' }} un objet - OsmHome{% endblock %}
+
+{% block content %}
+<div class="gestion-form-page">
+
+    <div class="profile-back">
+        <a href="/gestion">← Retour à la gestion</a>
+    </div>
+
+    <div class="gestion-form-card">
+        <div class="gestion-form-header">
+            <h2>
+                <i class="fa-solid fa-{{ 'pen' if device else 'plus' }}"></i>
+                {{ 'Modifier' if device else 'Ajouter' }} un objet connecté
+            </h2>
+        </div>
+
+        {% if error %}
+        <div class="form-error" style="margin:1rem 1.5rem 0">
+            <i class="fa-solid fa-circle-exclamation"></i> {{ error }}
+        </div>
+        {% endif %}
+
+        <form method="post" class="gestion-form">
+
+            <div class="gestion-form-section">
+                <h3 class="gestion-form-section-title">Informations générales</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Nom <span class="required">*</span></label>
+                        <input type="text" name="name" required
+                               value="{{ device['name'] if device else '' }}"
+                               placeholder="Ex: Thermostat Salon">
+                    </div>
+                    <div class="form-group">
+                        <label>Marque</label>
+                        <input type="text" name="brand"
+                               value="{{ device['brand'] if device else '' }}"
+                               placeholder="Ex: Nest, Philips Hue…">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea name="description" rows="2"
+                              placeholder="Description courte de l'objet">{{ device['description'] if device else '' }}</textarea>
+                </div>
+            </div>
+
+            <div class="gestion-form-section">
+                <h3 class="gestion-form-section-title">Caractéristiques</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Type <span class="required">*</span></label>
+                        <select name="type" id="device-type" required>
+                            {% set types_list = ['thermostat','caméra','éclairage','serrure','capteur','aspirateur','électroménager','volet','montre','énergie','autre'] %}
+                            {% for t in types_list %}
+                            <option value="{{ t }}" {{ 'selected' if device and device['type'] == t }}>{{ t | capitalize }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Statut</label>
+                        <select name="status">
+                            <option value="actif" {{ 'selected' if not device or device['status'] == 'actif' }}>Actif</option>
+                            <option value="inactif" {{ 'selected' if device and device['status'] == 'inactif' }}>Inactif</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Connectivité</label>
+                        <select name="connectivity">
+                            {% for c in ['Wi-Fi','Bluetooth','Zigbee','Z-Wave','Ethernet','Autre'] %}
+                            <option value="{{ c }}" {{ 'selected' if device and device['connectivity'] == c }}>{{ c }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Batterie (%)</label>
+                        <input type="number" name="battery" min="0" max="100"
+                               value="{{ device['battery'] if device and device['battery'] is not none else '' }}"
+                               placeholder="Laisser vide si sur secteur">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Pièce / Zone</label>
+                    <input type="text" name="room"
+                           value="{{ device['room'] if device else '' }}"
+                           placeholder="Ex: Salon, Cuisine, Entrée…">
+                </div>
+            </div>
+
+            <div class="gestion-form-section" id="config-section">
+                <h3 class="gestion-form-section-title">Paramètres de configuration</h3>
+                <div class="form-group" id="config-field-wrap">
+                    <label id="config-label">Paramètre</label>
+                    <input type="text" name="config" id="config-input"
+                           value="{{ device['config'] if device and device['config'] else '' }}"
+                           placeholder="">
+                </div>
+            </div>
+
+            <div class="gestion-form-actions">
+                <a href="/gestion" class="btn btn-outline">Annuler</a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fa-solid fa-floppy-disk"></i>
+                    {{ 'Enregistrer' if device else 'Ajouter l\'objet' }}
+                </button>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<script>
+const CONFIG_PARAMS = {
+    'thermostat':     { label: 'Température cible (°C)', placeholder: 'Ex: 21' },
+    'éclairage':      { label: 'Horaire de fonctionnement', placeholder: 'Ex: 07:00-23:00' },
+    'caméra':         { label: 'Sensibilité détection (1-10)', placeholder: 'Ex: 7' },
+    'serrure':        { label: 'Code d\'accès', placeholder: 'Ex: 1234' },
+    'volet':          { label: 'Heure d\'ouverture/fermeture', placeholder: 'Ex: 08:00 / 21:00' },
+    'capteur':        { label: 'Seuil d\'alerte', placeholder: 'Ex: 50 (ppm CO)' },
+    'électroménager': { label: 'Programme par défaut', placeholder: 'Ex: Eco 40°' },
+    'énergie':        { label: 'Puissance nominale (W)', placeholder: 'Ex: 3000' },
+};
+
+const typeSelect = document.getElementById('device-type');
+const configSection = document.getElementById('config-section');
+const configLabel = document.getElementById('config-label');
+const configInput = document.getElementById('config-input');
+
+function updateConfigField() {
+    const cfg = CONFIG_PARAMS[typeSelect.value];
+    if (cfg) {
+        configSection.style.display = '';
+        configLabel.textContent = cfg.label;
+        configInput.placeholder = cfg.placeholder;
+    } else {
+        configSection.style.display = 'none';
+    }
+}
+
+typeSelect.addEventListener('change', updateConfigField);
+updateConfigField();
+</script>
+{% endblock %}

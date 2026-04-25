@@ -1,0 +1,158 @@
+{% extends 'base.html' %}
+
+{% block title %}Gestion - OsmHome{% endblock %}
+
+{% block content %}
+<div class="gestion-page">
+
+    <div class="gestion-header">
+        <div>
+            <h2><i class="fa-solid fa-screwdriver-wrench"></i> Module Gestion</h2>
+            <p>Gérez les objets connectés de la maison</p>
+        </div>
+        <div class="gestion-header-actions">
+            <a href="/gestion/reports" class="btn btn-outline btn-sm">
+                <i class="fa-solid fa-chart-bar"></i> Rapports
+            </a>
+            <a href="/gestion/device/add" class="btn btn-primary btn-sm">
+                <i class="fa-solid fa-plus"></i> Ajouter un objet
+            </a>
+        </div>
+    </div>
+
+    <div class="gestion-stats">
+        <div class="gestion-stat">
+            <div class="gestion-stat-value">{{ stats.total }}</div>
+            <div class="gestion-stat-label">Total</div>
+        </div>
+        <div class="gestion-stat gestion-stat--active">
+            <div class="gestion-stat-value">{{ stats.active }}</div>
+            <div class="gestion-stat-label">Actifs</div>
+        </div>
+        <div class="gestion-stat gestion-stat--inactive">
+            <div class="gestion-stat-value">{{ stats.inactive }}</div>
+            <div class="gestion-stat-label">Inactifs</div>
+        </div>
+        <div class="gestion-stat gestion-stat--pending">
+            <div class="gestion-stat-value">{{ stats.pending_delete }}</div>
+            <div class="gestion-stat-label">Suppressions demandées</div>
+        </div>
+    </div>
+
+    {% if stats.low_battery %}
+    <div class="gestion-alert">
+        <i class="fa-solid fa-battery-quarter"></i>
+        <strong>{{ stats.low_battery | length }} objet(s) en batterie faible</strong> —
+        {% for d in stats.low_battery %}<span>{{ d['name'] }} ({{ d['battery'] }}%)</span>{% if not loop.last %}, {% endif %}{% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="gestion-table-wrap">
+        <table class="gestion-table">
+            <thead>
+                <tr>
+                    <th>Objet</th>
+                    <th>Type</th>
+                    <th>Marque</th>
+                    <th>Pièce</th>
+                    <th>Connectivité</th>
+                    <th>Batterie</th>
+                    <th>Statut</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for d in devices %}
+                <tr class="{{ 'row-pending-delete' if d['deletion_requested'] }}" data-id="{{ d['id'] }}">
+                    <td>
+                        <a href="/device/{{ d['id'] }}" class="gestion-device-name">{{ d['name'] }}</a>
+                        {% if d['deletion_requested'] %}
+                        <span class="badge-pending-delete"><i class="fa-solid fa-clock"></i> Suppression demandée</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-muted">{{ d['type'] }}</td>
+                    <td class="text-muted">{{ d['brand'] or '—' }}</td>
+                    <td class="text-muted">{{ d['room'] or '—' }}</td>
+                    <td class="text-muted">{{ d['connectivity'] or '—' }}</td>
+                    <td>
+                        {% if d['battery'] is not none %}
+                        <span class="battery-val {{ 'battery-low' if d['battery'] < 20 }}">
+                            {{ d['battery'] }}%
+                        </span>
+                        {% else %}—{% endif %}
+                    </td>
+                    <td>
+                        <span class="status-toggle {{ 'status-active' if d['status'] == 'actif' else 'status-inactive' }}"
+                              id="status-{{ d['id'] }}">
+                            {{ d['status'] }}
+                        </span>
+                    </td>
+                    <td class="gestion-actions">
+                        <a href="/gestion/device/{{ d['id'] }}/edit" class="btn-action btn-action--edit" title="Modifier">
+                            <i class="fa-solid fa-pen"></i>
+                        </a>
+                        <button class="btn-action btn-action--toggle" data-id="{{ d['id'] }}"
+                                data-status="{{ d['status'] }}" title="Activer / Désactiver">
+                            {% if d['status'] == 'actif' %}
+                            <i class="fa-solid fa-toggle-on"></i>
+                            {% else %}
+                            <i class="fa-solid fa-toggle-off"></i>
+                            {% endif %}
+                        </button>
+                        <button class="btn-action {{ 'btn-action--cancel-del' if d['deletion_requested'] else 'btn-action--delete' }}"
+                                data-id="{{ d['id'] }}" data-requested="{{ '1' if d['deletion_requested'] else '0' }}"
+                                title="{{ 'Annuler la demande' if d['deletion_requested'] else 'Demander suppression' }}">
+                            {% if d['deletion_requested'] %}
+                            <i class="fa-solid fa-rotate-left"></i>
+                            {% else %}
+                            <i class="fa-solid fa-trash"></i>
+                            {% endif %}
+                        </button>
+                        {% if is_admin and d['deletion_requested'] %}
+                        <form action="/admin/device/{{ d['id'] }}/delete" method="post" style="display:inline"
+                              onsubmit="return confirm('Supprimer définitivement « {{ d.name }} » ?')">
+                            <button class="btn-action btn-action--confirm-del" title="Confirmer suppression (admin)">
+                                <i class="fa-solid fa-check"></i>
+                            </button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+<script>
+document.querySelectorAll('.btn-action--toggle').forEach(btn => {
+    btn.addEventListener('click', async () => {
+        const id = btn.dataset.id;
+        const resp = await fetch(`/api/gestion/device/${id}/toggle`, { method: 'POST' });
+        const data = await resp.json();
+        if (data.ok) {
+            const pill = document.getElementById(`status-${id}`);
+            pill.textContent = data.status;
+            pill.className = 'status-toggle ' + (data.status === 'actif' ? 'status-active' : 'status-inactive');
+            btn.innerHTML = data.status === 'actif'
+                ? '<i class="fa-solid fa-toggle-on"></i>'
+                : '<i class="fa-solid fa-toggle-off"></i>';
+            btn.dataset.status = data.status;
+        }
+    });
+});
+
+document.querySelectorAll('.btn-action--delete, .btn-action--cancel-del').forEach(btn => {
+    btn.addEventListener('click', async () => {
+        const id = btn.dataset.id;
+        const wasRequested = btn.dataset.requested === '1';
+        const resp = await fetch(`/api/gestion/device/${id}/request-delete`, { method: 'POST' });
+        const data = await resp.json();
+        if (data.ok) {
+            location.reload();
+        }
+    });
+});
+</script>
+{% endblock %}

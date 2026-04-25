@@ -1,12 +1,66 @@
+import os
 import flask
 import utils
 import flask_socketio
+import flask_mail
+from werkzeug.utils import secure_filename
+
+UPLOAD_FOLDER = os.path.join('static', 'uploads', 'photos')
+ALLOWED_PHOTO_EXT = {'jpg', 'jpeg', 'png', 'gif', 'webp'}
 
 app = flask.Flask(__name__, static_url_path='/static')
 app.teardown_appcontext(utils.closeDB)
 app.secret_key = "secret1234"
 
+app.config['MAIL_SERVER']   = 'smtp.gmail.com'
+app.config['MAIL_PORT']     = 587
+app.config['MAIL_USE_TLS']  = True
+app.config['MAIL_USERNAME'] = 'kentaroloret1@gmail.com'
+app.config['MAIL_PASSWORD'] = 'ybwr tsfl dkgv bkcr'
+app.config['MAIL_DEFAULT_SENDER'] = app.config['MAIL_USERNAME']
+
+mail = flask_mail.Mail(app)
 socket = flask_socketio.SocketIO(app, async_mode='gevent')
+
+def send_verification_email(to_email: str, username: str, token: str) -> bool:
+    verify_url = flask.url_for('verify_email', token=token, _external=True)
+    msg = flask_mail.Message('Validez votre inscription - OsmHome',
+                             recipients=[to_email],
+                             sender=app.config['MAIL_USERNAME'])
+    msg.html = f'''
+    <div style="font-family:sans-serif;max-width:480px;margin:auto">
+      <h2 style="color:#1a73e8">Bienvenue sur OsmHome, {username} !</h2>
+      <p>Cliquez sur le bouton ci-dessous pour valider votre adresse email et activer votre compte.</p>
+      <a href="{verify_url}"
+         style="display:inline-block;background:#1a73e8;color:#fff;padding:12px 24px;
+                border-radius:8px;text-decoration:none;font-weight:600;margin:16px 0">
+        Valider mon compte
+      </a>
+      <p style="color:#666;font-size:0.85rem">Ce lien est valable 24h. Si vous n\'avez pas créé de compte, ignorez cet email.</p>
+    </div>
+    '''
+    try:
+        mail.send(msg)
+        return True
+    except Exception as e:
+        app.logger.error(f'[MAIL ERROR] {e}')
+        return False
+
+@app.route('/admin/test-mail')
+def test_mail():
+    username = flask.session.get('username')
+    if not username or utils.getUser(username)['role'] != 'admin':
+        flask.abort(403)
+    cfg_user = app.config.get('MAIL_USERNAME', '')
+    if not cfg_user:
+        return 'MAIL_USERNAME non configuré', 400
+    try:
+        msg = flask_mail.Message('Test OsmHome', recipients=[cfg_user], sender=cfg_user)
+        msg.body = 'Si vous recevez cet email, la configuration SMTP fonctionne.'
+        mail.send(msg)
+        return 'Email de test envoyé à ' + cfg_user
+    except Exception as e:
+        return f'Erreur : {e}', 500
 
 @app.route('/')
 def home():
@@ -25,15 +79,45 @@ def signup():
         birthdate = flask.request.form.get('birthdate', '').strip()
 
         member_type = flask.request.form.get('member_type', 'fils').strip()
+
+        SIGNUP_ERRORS = {
+            'username_taken': 'Ce pseudo est déjà utilisé, choisissez-en un autre.',
+        }
+
+        errors = []
+        if not username:
+            errors.append('Le pseudo est obligatoire.')
+        if not password or len(password) < 6:
+            errors.append('Le mot de passe doit contenir au moins 6 caractères.')
+        if not lastname:
+            errors.append('Le nom est obligatoire.')
+        if not firstname:
+            errors.append('Le prénom est obligatoire.')
+        if not email or '@' not in email:
+            errors.append('L\'adresse email est invalide.')
+        if not age or not age.isdigit() or not (1 <= int(age) <= 120):
+            errors.append('L\'âge doit être un nombre valide.')
+        if not birthdate:
+            errors.append('La date de naissance est obligatoire.')
+
+        if errors:
+            return flask.render_template('signup.html', user=None,
+                error=' '.join(errors), form=flask.request.form)
+
         success, reason = utils.createUser(username, password, lastname, firstname, email, age, gender, birthdate, member_type)
 
         if success:
-            flask.session['username'] = username
-            return flask.redirect('/dashboard')
+            token = reason
+            smtp_configured = bool(app.config.get('MAIL_USERNAME'))
+            if smtp_configured:
+                send_verification_email(email, username, token)
+                flask.session['pending_verification'] = username
+                return flask.redirect('/verify-pending')
+            else:
+                utils.verifyEmail(token)
+                flask.session['username'] = username
+                return flask.redirect('/dashboard')
         else:
-            SIGNUP_ERRORS = {
-                'username_taken': 'Ce pseudo est déjà utilisé, choisissez-en un autre.',
-            }
             return flask.render_template('signup.html', user=None,
                 error=SIGNUP_ERRORS.get(reason, 'Erreur lors de la création du compte.'),
                 form=flask.request.form)
@@ -58,6 +142,10 @@ def login():
         success, reason = utils.loginUser(username, password)
 
         if success:
+            user_data = utils.getUser(username)
+            if not user_data['email_verified']:
+                flask.session['pending_verification'] = username
+                return flask.redirect('/verify-pending')
             flask.session['username'] = username
             utils.recordConnection(username)
             return flask.redirect('/dashboard')
@@ -150,6 +238,77 @@ def profile_delete():
     flask.session.clear()
     return flask.redirect('/')
 
+@app.route('/verify-pending')
+def verify_pending():
+    username = flask.session.get('pending_verification')
+    if not username:
+        return flask.redirect('/login')
+    user_data = utils.getUser(username)
+    if not user_data:
+        return flask.redirect('/login')
+    if user_data['email_verified']:
+        flask.session.pop('pending_verification', None)
+        flask.session['username'] = username
+        return flask.redirect('/dashboard')
+    email = user_data['email'] or ''
+    masked = email[:2] + '***' + email[email.find('@'):] if '@' in email else email
+    return flask.render_template('verify_pending.html', user=None, email_masked=masked)
+
+@app.route('/verify/<token>')
+def verify_email(token):
+    success, result = utils.verifyEmail(token)
+    if not success:
+        return flask.render_template('verify_pending.html', user=None,
+            email_masked='', error='Lien invalide ou expiré.')
+    flask.session.pop('pending_verification', None)
+    flask.session['username'] = result
+    utils.recordConnection(result)
+    return flask.redirect('/dashboard')
+
+@app.route('/resend-verification', methods=['POST'])
+def resend_verification():
+    username = flask.session.get('pending_verification')
+    if not username:
+        return flask.redirect('/login')
+    user_data = utils.getUser(username)
+    if not user_data or user_data['email_verified']:
+        return flask.redirect('/dashboard')
+    token = utils.regenerateToken(username)
+    send_verification_email(user_data['email'], username, token)
+    return flask.render_template('verify_pending.html', user=None,
+        email_masked='', resent=True)
+
+@app.route('/profile/change-password', methods=['POST'])
+def profile_change_password():
+    if 'username' not in flask.session:
+        return flask.jsonify({'ok': False, 'error': 'not_logged_in'}), 401
+    data = flask.request.get_json()
+    current = data.get('current_password', '')
+    new_pw  = data.get('new_password', '')
+    confirm = data.get('confirm_password', '')
+    if new_pw != confirm:
+        return flask.jsonify({'ok': False, 'error': 'mismatch'})
+    success, reason = utils.changePassword(flask.session['username'], current, new_pw)
+    if success:
+        return flask.jsonify({'ok': True})
+    return flask.jsonify({'ok': False, 'error': reason})
+
+@app.route('/profile/photo', methods=['POST'])
+def profile_photo():
+    if 'username' not in flask.session:
+        return flask.jsonify({'ok': False}), 401
+    file = flask.request.files.get('photo')
+    if not file or file.filename == '':
+        return flask.jsonify({'ok': False, 'error': 'no_file'})
+    ext = file.filename.rsplit('.', 1)[-1].lower() if '.' in file.filename else ''
+    if ext not in ALLOWED_PHOTO_EXT:
+        return flask.jsonify({'ok': False, 'error': 'invalid_type'})
+    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+    filename = secure_filename(flask.session['username']) + '.' + ext
+    file.save(os.path.join(UPLOAD_FOLDER, filename))
+    utils.updatePhoto(flask.session['username'], filename)
+    return flask.jsonify({'ok': True, 'filename': filename})
+
 @app.route('/logout')
 def logout():
     flask.session.clear()
@@ -175,6 +334,41 @@ def search():
         filter_status=filter_status,
         searched=searched
     )
+
+@app.route('/services')
+def services():
+    query           = flask.request.args.get('q', '').strip()
+    filter_category = flask.request.args.get('category', '').strip()
+    filter_access   = flask.request.args.get('access', '').strip()
+
+    searched   = bool(query or filter_category or filter_access)
+    results    = utils.searchServices(query, filter_category, filter_access) if searched else None
+    categories = utils.getCategories()
+
+    return flask.render_template(
+        'services.html',
+        user=flask.session.get('username'),
+        results=results,
+        categories=categories,
+        query=query,
+        filter_category=filter_category,
+        filter_access=filter_access,
+        searched=searched
+    )
+
+@app.route('/service/<int:service_id>')
+def service_detail(service_id):
+    if 'username' not in flask.session:
+        return flask.redirect('/login')
+    service = utils.getService(service_id)
+    if not service:
+        flask.abort(404)
+    viewer_data = utils.getUser(flask.session['username'])
+    if service['access'] == 'restreint' and viewer_data['role'] != 'admin':
+        flask.abort(403)
+    utils.addPoints(flask.session['username'], 0.50)
+    utils.incrementActions(flask.session['username'])
+    return flask.render_template('service.html', user=flask.session.get('username'), service=service)
 
 @app.route('/members')
 def membres():
@@ -231,6 +425,7 @@ def api_consult(device_id):
     if not device:
         return flask.jsonify({'ok': False})
     utils.addPoints(flask.session['username'], 0.50)
+    utils.incrementActions(flask.session['username'])
     user_data  = utils.getUser(flask.session['username'])
     new_points = float(user_data['points'])
     socket.emit('points_update', {
@@ -244,12 +439,126 @@ def on_join():
     if 'username' in flask.session:
         flask_socketio.join_room(flask.session['username'])
 
+@app.route('/admin')
+def admin():
+    if 'username' not in flask.session:
+        return flask.redirect('/login')
+    viewer_data = utils.getUser(flask.session['username'])
+    if not viewer_data or viewer_data['role'] != 'admin':
+        flask.abort(403)
+    stats = utils.getAdminStats()
+    return flask.render_template('admin.html', user=flask.session.get('username'), stats=stats)
+
 @app.context_processor
 def inject_types():
     try:
-        return {'types': utils.getTypes()}
-    except:
-        return {'types': []}
+        types = utils.getTypes()
+    except Exception:
+        types = []
+    is_admin = False
+    user_level = None
+    if flask.session.get('username'):
+        u = utils.getUser(flask.session['username'])
+        is_admin = bool(u and u['role'] == 'admin')
+        user_level = u['level'] if u else None
+    return {'types': types, 'is_admin': is_admin, 'user_level': user_level}
+
+def _require_gestion():
+    if 'username' not in flask.session:
+        return flask.redirect('/login')
+    u = utils.getUser(flask.session['username'])
+    if not u or u['level'] not in ('avance', 'expert'):
+        flask.abort(403)
+    return None
+
+@app.route('/gestion')
+def gestion():
+    r = _require_gestion()
+    if r: return r
+    devices = utils.getDevicesForGestion()
+    stats   = utils.getGestionStats()
+    return flask.render_template('gestion.html', user=flask.session.get('username'),
+                                 devices=devices, stats=stats)
+
+@app.route('/gestion/device/add', methods=['GET', 'POST'])
+def gestion_device_add():
+    r = _require_gestion()
+    if r: return r
+    if flask.request.method == 'POST':
+        f = flask.request.form
+        battery = f.get('battery', '').strip()
+        battery = int(battery) if battery.isdigit() else None
+        success, result = utils.addDevice(
+            f.get('name','').strip(), f.get('description','').strip(),
+            f.get('type','').strip(), f.get('brand','').strip(),
+            f.get('status','actif'), f.get('connectivity','').strip(),
+            battery, f.get('room','').strip(), f.get('config','').strip() or None
+        )
+        if success:
+            return flask.redirect('/gestion')
+        return flask.render_template('gestion_form.html', user=flask.session.get('username'),
+                                     device=None, error='Erreur lors de l\'ajout.')
+    return flask.render_template('gestion_form.html', user=flask.session.get('username'), device=None)
+
+@app.route('/gestion/device/<int:device_id>/edit', methods=['GET', 'POST'])
+def gestion_device_edit(device_id):
+    r = _require_gestion()
+    if r: return r
+    device = utils.getDevice(device_id)
+    if not device:
+        flask.abort(404)
+    if flask.request.method == 'POST':
+        f = flask.request.form
+        battery = f.get('battery', '').strip()
+        battery = int(battery) if battery.isdigit() else None
+        success, _ = utils.updateDevice(
+            device_id, f.get('name','').strip(), f.get('description','').strip(),
+            f.get('type','').strip(), f.get('brand','').strip(),
+            f.get('status','actif'), f.get('connectivity','').strip(),
+            battery, f.get('room','').strip(), f.get('config','').strip() or None
+        )
+        if success:
+            return flask.redirect('/gestion')
+        return flask.render_template('gestion_form.html', user=flask.session.get('username'),
+                                     device=device, error='Erreur lors de la modification.')
+    return flask.render_template('gestion_form.html', user=flask.session.get('username'), device=device)
+
+@app.route('/api/gestion/device/<int:device_id>/toggle', methods=['POST'])
+def gestion_device_toggle(device_id):
+    r = _require_gestion()
+    if r: return flask.jsonify({'ok': False}), 403
+    success, result = utils.toggleDeviceStatus(device_id)
+    return flask.jsonify({'ok': success, 'status': result if success else None})
+
+@app.route('/api/gestion/device/<int:device_id>/request-delete', methods=['POST'])
+def gestion_request_delete(device_id):
+    r = _require_gestion()
+    if r: return flask.jsonify({'ok': False}), 403
+    device = utils.getDevice(device_id)
+    if not device:
+        return flask.jsonify({'ok': False})
+    if device['deletion_requested']:
+        utils.cancelDeviceDeletion(device_id)
+        return flask.jsonify({'ok': True, 'requested': False})
+    utils.requestDeviceDeletion(device_id)
+    return flask.jsonify({'ok': True, 'requested': True})
+
+@app.route('/admin/device/<int:device_id>/delete', methods=['POST'])
+def admin_device_delete(device_id):
+    if 'username' not in flask.session:
+        return flask.redirect('/login')
+    u = utils.getUser(flask.session['username'])
+    if not u or u['role'] != 'admin':
+        flask.abort(403)
+    utils.adminDeleteDevice(device_id)
+    return flask.redirect('/gestion')
+
+@app.route('/gestion/reports')
+def gestion_reports():
+    r = _require_gestion()
+    if r: return r
+    stats = utils.getGestionStats()
+    return flask.render_template('gestion_reports.html', user=flask.session.get('username'), stats=stats)
 
 with app.app_context():
     utils.initDB()

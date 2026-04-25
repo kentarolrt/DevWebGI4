@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block title %}Services - OsmHome{% endblock %}
+
+{% block content %}
+<div class="search-page">
+    <div class="search-header">
+        {% if searched %}
+        <h2>
+            <span class="result-count">{{ results|length }}</span> résultat{{ 's' if results|length > 1 }} trouvé{{ 's' if results|length > 1 }}
+        </h2>
+        <p class="search-summary">
+            {% if query %}mot-clé : <strong>{{ query }}</strong>{% endif %}
+            {% if filter_category %} · catégorie : <strong>{{ filter_category }}</strong>{% endif %}
+            {% if filter_access %} · accès : <strong>{{ filter_access }}</strong>{% endif %}
+        </p>
+        {% else %}
+        <h2>Rechercher un outil ou service</h2>
+        {% endif %}
+    </div>
+
+    <form action="/services" method="get" class="search-bar">
+        <div class="search-input-wrap">
+            <input type="text" name="q" placeholder="Rechercher un service..."
+                   value="{{ query }}" />
+        </div>
+        <select name="category">
+            <option value="">Toutes les catégories</option>
+            {% for c in categories %}
+            <option value="{{ c }}" {% if filter_category == c %}selected{% endif %}>{{ c }}</option>
+            {% endfor %}
+        </select>
+        <select name="access">
+            <option value="">Tous les accès</option>
+            <option value="libre"     {% if filter_access == 'libre'     %}selected{% endif %}>Libre</option>
+            <option value="restreint" {% if filter_access == 'restreint' %}selected{% endif %}>Restreint</option>
+        </select>
+        <button type="submit">Rechercher</button>
+    </form>
+
+    {% if not searched %}
+    <div class="no-results">
+        <p>Utilisez les filtres ci-dessus pour trouver un service.</p>
+    </div>
+
+    {% elif results %}
+    <div class="devices-grid">
+        {% for s in results %}
+        <a href="/service/{{ s['id'] }}" class="device-card device-card--link">
+            <div class="device-top">
+                <div class="device-icon" aria-label="{{ s['category'] }}">
+                    {% if s['category'] == 'Sécurité' %}<i class="fa-solid fa-shield-halved"></i>
+                    {% elif s['category'] == 'Énergie' %}<i class="fa-solid fa-bolt"></i>
+                    {% elif s['category'] == 'Confort' %}<i class="fa-solid fa-house"></i>
+                    {% elif s['category'] == 'Multimédia' %}<i class="fa-solid fa-play"></i>
+                    {% elif s['category'] == 'Automatisation' %}<i class="fa-solid fa-gears"></i>
+                    {% elif s['category'] == 'Santé' %}<i class="fa-solid fa-heart-pulse"></i>
+                    {% else %}<i class="fa-solid fa-wrench"></i>{% endif %}
+                </div>
+                <span class="device-status {{ 'status-active' if s['access'] == 'libre' else 'status-inactive' }}">
+                    {{ s['access'] }}
+                </span>
+            </div>
+
+            <h3 class="device-name">{{ s['name'] }}</h3>
+            <p class="device-description">{{ s['description'] }}</p>
+
+            <ul class="device-infos">
+                <li><strong>Catégorie</strong> {{ s['category'] }}</li>
+                <li><strong>Accès</strong> {{ s['access'] | capitalize }}</li>
+            </ul>
+        </a>
+        {% endfor %}
+    </div>
+
+    {% else %}
+    <div class="no-results">
+        <p>Aucun service trouvé pour cette recherche.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

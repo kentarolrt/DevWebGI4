@@ -12,7 +12,13 @@
     <div class="profile-layout-main">
 
         <div class="profile-id-card">
-            <div class="profile-avatar-lg">{{ member['username'][0] | upper }}</div>
+            <div class="profile-avatar-lg">
+                {% if member['photo'] %}
+                <img src="{{ url_for('static', filename='uploads/photos/' + member['photo']) }}" alt="Photo de profil" class="profile-avatar-img">
+                {% else %}
+                {{ member['username'][0] | upper }}
+                {% endif %}
+            </div>
             <div class="profile-id-info">
                 <h2 class="profile-username">{{ member['username'] }}</h2>
                 <span class="profile-role-badge">{{ member['member_type'] or '—' }}</span>

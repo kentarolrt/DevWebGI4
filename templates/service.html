@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ service['name'] }} - OsmHome{% endblock %}
+
+{% block content %}
+<div class="device-detail-page">
+    <a href="javascript:history.back()" class="device-detail-back">← Retour</a>
+
+    <div class="device-detail-card">
+        <div class="device-detail-top">
+            <div class="device-icon device-icon--lg" aria-label="{{ service['category'] }}">
+                {% if service['category'] == 'Sécurité' %}<i class="fa-solid fa-shield-halved"></i>
+                {% elif service['category'] == 'Énergie' %}<i class="fa-solid fa-bolt"></i>
+                {% elif service['category'] == 'Confort' %}<i class="fa-solid fa-house"></i>
+                {% elif service['category'] == 'Multimédia' %}<i class="fa-solid fa-play"></i>
+                {% elif service['category'] == 'Automatisation' %}<i class="fa-solid fa-gears"></i>
+                {% elif service['category'] == 'Santé' %}<i class="fa-solid fa-heart-pulse"></i>
+                {% else %}<i class="fa-solid fa-wrench"></i>{% endif %}
+            </div>
+            <div>
+                <h1 class="device-detail-name">{{ service['name'] }}</h1>
+                <span class="device-status {{ 'status-active' if service['access'] == 'libre' else 'status-inactive' }}">
+                    {{ service['access'] }}
+                </span>
+            </div>
+        </div>
+
+        <p class="device-detail-description">{{ service['description'] }}</p>
+
+        <ul class="device-detail-infos">
+            <li><span>Catégorie</span><strong>{{ service['category'] }}</strong></li>
+            <li><span>Accès</span><strong>{{ service['access'] | capitalize }}</strong></li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

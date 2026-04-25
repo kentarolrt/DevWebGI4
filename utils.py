@@ -1,4 +1,5 @@
 import sqlite3
+import secrets
 import flask
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -61,9 +62,41 @@ def initDB():
             connected_at TEXT DEFAULT (datetime('now')),
             FOREIGN KEY (user_id) REFERENCES users(id)
         );
+
+        CREATE TABLE IF NOT EXISTS services (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT,
+            description TEXT,
+            category TEXT,
+            access TEXT DEFAULT 'libre'
+        );
     ''')
 
     db.commit()
+
+    try:
+        db.execute('ALTER TABLE users ADD COLUMN actions INTEGER DEFAULT 0')
+        db.commit()
+    except Exception:
+        pass
+
+    try:
+        db.execute('ALTER TABLE users ADD COLUMN verification_token TEXT')
+        db.commit()
+    except Exception:
+        pass
+
+    try:
+        db.execute('ALTER TABLE devices ADD COLUMN deletion_requested INTEGER DEFAULT 0')
+        db.commit()
+    except Exception:
+        pass
+
+    try:
+        db.execute('ALTER TABLE devices ADD COLUMN config TEXT')
+        db.commit()
+    except Exception:
+        pass
 
 
 MEMBER_TYPES = ['père', 'mère', 'fils', 'fille']
@@ -84,16 +117,33 @@ def createUser(username, password, lastname, firstname, email, age, gender, birt
 
     role = 'admin' if member_type in ('père', 'mère') else 'simple'
     level = 'expert' if member_type in ('père', 'mère') else 'debutant'
+    token = secrets.token_urlsafe(32)
 
     db.execute(
-        'INSERT INTO users (username, password, lastname, firstname, email, age, gender, birthdate, member_type, role, level) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        (username, generate_password_hash(password), lastname, firstname, email, age, gender, birthdate, member_type, role, level)
+        'INSERT INTO users (username, password, lastname, firstname, email, age, gender, birthdate, member_type, role, level, verification_token) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        (username, generate_password_hash(password), lastname, firstname, email, age, gender, birthdate, member_type, role, level, token)
     )
 
     db.commit()
 
-    return True, 'ok'
+    return True, token
 
+
+def verifyEmail(token: str) -> tuple[bool, str]:
+    db = openDB()
+    user = db.execute('SELECT id, username FROM users WHERE verification_token = ?', (token,)).fetchone()
+    if not user:
+        return False, 'invalid_token'
+    db.execute('UPDATE users SET email_verified = 1, verification_token = NULL WHERE id = ?', (user['id'],))
+    db.commit()
+    return True, user['username']
+
+def regenerateToken(username: str) -> str:
+    db = openDB()
+    token = secrets.token_urlsafe(32)
+    db.execute('UPDATE users SET verification_token = ? WHERE username = ?', (token, username))
+    db.commit()
+    return token
 
 def loginUser(username, password) -> tuple[bool, str]:
     db = openDB()
@@ -205,23 +255,152 @@ def upgradeLevel(username: str) -> tuple[bool, str]:
     db.commit()
     return True, new_level
 
+def incrementActions(username: str) -> None:
+    db = openDB()
+    db.execute('UPDATE users SET actions = actions + 1 WHERE username = ?', (username,))
+    db.commit()
+
 def recordConnection(username: str) -> None:
     db = openDB()
     user = db.execute('SELECT id FROM users WHERE username = ?', (username,)).fetchone()
     if user:
         db.execute('INSERT INTO connection_history (user_id) VALUES (?)', (user['id'],))
         db.commit()
+    incrementActions(username)
     addPoints(username, 0.25)
+
+def getAdminStats() -> list:
+    db = openDB()
+    return db.execute('''
+        SELECT u.username, u.member_type, u.level, u.points, u.actions,
+               COUNT(c.id) AS connection_count
+        FROM users u
+        LEFT JOIN connection_history c ON c.user_id = u.id
+        GROUP BY u.id
+        ORDER BY connection_count DESC
+    ''').fetchall()
 
 def getDevice(device_id: int):
     db = openDB()
     return db.execute('SELECT * FROM devices WHERE id = ?', (device_id,)).fetchone()
+
+def searchServices(query='', filter_category='', filter_access='') -> list:
+    db = openDB()
+    sql = 'SELECT * FROM services WHERE 1=1'
+    params = []
+    if query:
+        sql += ' AND (name LIKE ? OR description LIKE ?)'
+        params.extend([f'%{query}%', f'%{query}%'])
+    if filter_category:
+        sql += ' AND category = ?'
+        params.append(filter_category)
+    if filter_access:
+        sql += ' AND access = ?'
+        params.append(filter_access)
+    sql += ' ORDER BY category, name'
+    return db.execute(sql, params).fetchall()
+
+def getService(service_id: int):
+    db = openDB()
+    return db.execute('SELECT * FROM services WHERE id = ?', (service_id,)).fetchone()
+
+def getCategories() -> list:
+    db = openDB()
+    rows = db.execute('SELECT DISTINCT category FROM services ORDER BY category').fetchall()
+    return [row['category'] for row in rows]
 
 def getAllMembers() -> list:
     db = openDB()
     return db.execute(
         'SELECT username, age, gender, birthdate, member_type, level, points FROM users ORDER BY member_type, username'
     ).fetchall()
+
+def addDevice(name, description, type_, brand, status, connectivity, battery, room, config=None):
+    db = openDB()
+    cursor = db.execute(
+        'INSERT INTO devices (name, description, type, brand, status, connectivity, battery, room, config) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        (name, description, type_, brand, status, connectivity, battery or None, room or None, config)
+    )
+    db.commit()
+    return True, cursor.lastrowid
+
+def updateDevice(device_id, name, description, type_, brand, status, connectivity, battery, room, config=None):
+    db = openDB()
+    if not db.execute('SELECT id FROM devices WHERE id = ?', (device_id,)).fetchone():
+        return False, 'not_found'
+    db.execute(
+        'UPDATE devices SET name=?, description=?, type=?, brand=?, status=?, connectivity=?, battery=?, room=?, config=? WHERE id=?',
+        (name, description, type_, brand, status, connectivity, battery or None, room or None, config, device_id)
+    )
+    db.commit()
+    return True, 'ok'
+
+def toggleDeviceStatus(device_id):
+    db = openDB()
+    device = db.execute('SELECT id, status FROM devices WHERE id = ?', (device_id,)).fetchone()
+    if not device:
+        return False, 'not_found'
+    new_status = 'inactif' if device['status'] == 'actif' else 'actif'
+    db.execute('UPDATE devices SET status = ? WHERE id = ?', (new_status, device_id))
+    db.commit()
+    return True, new_status
+
+def requestDeviceDeletion(device_id):
+    db = openDB()
+    db.execute('UPDATE devices SET deletion_requested = 1 WHERE id = ?', (device_id,))
+    db.commit()
+
+def cancelDeviceDeletion(device_id):
+    db = openDB()
+    db.execute('UPDATE devices SET deletion_requested = 0 WHERE id = ?', (device_id,))
+    db.commit()
+
+def adminDeleteDevice(device_id):
+    db = openDB()
+    db.execute('DELETE FROM devices WHERE id = ?', (device_id,))
+    db.commit()
+
+def getDevicesForGestion():
+    db = openDB()
+    return db.execute('SELECT * FROM devices ORDER BY type, name').fetchall()
+
+def getGestionStats():
+    db = openDB()
+    devices = db.execute('SELECT * FROM devices').fetchall()
+    total = len(devices)
+    active = sum(1 for d in devices if d['status'] == 'actif')
+    pending_delete = sum(1 for d in devices if d['deletion_requested'])
+    low_battery = [d for d in devices if d['battery'] is not None and d['battery'] < 20]
+    by_type = {}
+    for d in devices:
+        t = d['type']
+        if t not in by_type:
+            by_type[t] = {'total': 0, 'active': 0}
+        by_type[t]['total'] += 1
+        if d['status'] == 'actif':
+            by_type[t]['active'] += 1
+    return {
+        'total': total, 'active': active, 'inactive': total - active,
+        'pending_delete': pending_delete, 'low_battery': low_battery, 'by_type': by_type,
+    }
+
+def changePassword(username: str, current_password: str, new_password: str) -> tuple[bool, str]:
+    db = openDB()
+    user = db.execute('SELECT password FROM users WHERE username = ?', (username,)).fetchone()
+    if not user:
+        return False, 'user_not_found'
+    if not check_password_hash(user['password'], current_password):
+        return False, 'wrong_password'
+    if len(new_password) < 6:
+        return False, 'too_short'
+    db.execute('UPDATE users SET password = ? WHERE username = ?', (generate_password_hash(new_password), username))
+    db.commit()
+    return True, 'ok'
+
+def updatePhoto(username: str, filename: str) -> None:
+    db = openDB()
+    db.execute('UPDATE users SET photo = ? WHERE username = ?', (filename, username))
+    db.commit()
 
 def deleteUser(username: str) -> tuple[bool, str]:
     db = openDB()

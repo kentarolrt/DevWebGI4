@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block title %}Vérifiez votre email - OsmHome{% endblock %}
+
+{% block content %}
+<div class="verify-page">
+    <div class="verify-card">
+
+        <div class="verify-icon">
+            <i class="fa-solid fa-envelope-open-text"></i>
+        </div>
+
+        <p class="verify-kicker">Inscription</p>
+        <h2 class="verify-title">Vérifiez votre email</h2>
+
+        {% if error %}
+        <div class="form-error" style="margin-bottom:1rem">
+            <i class="fa-solid fa-circle-exclamation"></i> {{ error }}
+        </div>
+        {% endif %}
+
+        {% if resent %}
+        <div class="verify-alert verify-alert--success">
+            <i class="fa-solid fa-circle-check"></i> Email renvoyé ! Vérifiez votre boîte de réception.
+        </div>
+        {% endif %}
+
+        <p class="verify-text">
+            Un lien de confirmation a été envoyé à
+            {% if email_masked %}<strong>{{ email_masked }}</strong>{% else %}votre adresse email{% endif %}.
+            Cliquez sur ce lien pour activer votre compte.
+        </p>
+
+        <form action="/resend-verification" method="post">
+            <button type="submit" class="btn btn-primary verify-btn">
+                <i class="fa-solid fa-paper-plane"></i> Renvoyer l'email
+            </button>
+        </form>
+
+        <a href="/signup" class="verify-back">Retour à l'inscription</a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+
+{% block title %}Rapports - OsmHome{% endblock %}
+
+{% block content %}
+<div class="gestion-page">
+
+    <div class="gestion-header">
+        <div>
+            <h2><i class="fa-solid fa-chart-bar"></i> Rapports &amp; Statistiques</h2>
+            <p>Vue d'ensemble de l'état du parc d'objets connectés</p>
+        </div>
+        <a href="/gestion" class="btn btn-outline btn-sm">← Retour à la gestion</a>
+    </div>
+
+    <!-- Résumé global -->
+    <div class="gestion-stats">
+        <div class="gestion-stat">
+            <div class="gestion-stat-value">{{ stats.total }}</div>
+            <div class="gestion-stat-label">Objets au total</div>
+        </div>
+        <div class="gestion-stat gestion-stat--active">
+            <div class="gestion-stat-value">{{ stats.active }}</div>
+            <div class="gestion-stat-label">Actifs</div>
+        </div>
+        <div class="gestion-stat gestion-stat--inactive">
+            <div class="gestion-stat-value">{{ stats.inactive }}</div>
+            <div class="gestion-stat-label">Inactifs</div>
+        </div>
+        <div class="gestion-stat gestion-stat--pending">
+            <div class="gestion-stat-value">{{ stats.low_battery | length }}</div>
+            <div class="gestion-stat-label">Batterie faible</div>
+        </div>
+    </div>
+
+    <!-- Répartition par type -->
+    <div class="report-section">
+        <h3 class="report-section-title"><i class="fa-solid fa-layer-group"></i> Répartition par type</h3>
+        <div class="gestion-table-wrap">
+            <table class="gestion-table">
+                <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>Total</th>
+                        <th>Actifs</th>
+                        <th>Inactifs</th>
+                        <th>Taux d'activité</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for type_name, data in stats.by_type.items() | sort %}
+                    {% set pct = ((data.active / data.total) * 100) | int %}
+                    <tr>
+                        <td><strong>{{ type_name | capitalize }}</strong></td>
+                        <td>{{ data.total }}</td>
+                        <td class="text-success">{{ data.active }}</td>
+                        <td class="text-muted">{{ data.total - data.active }}</td>
+                        <td>
+                            <div class="mini-progress-wrap">
+                                <div class="mini-progress-bar">
+                                    <div class="mini-progress-fill {{ 'fill-low' if pct < 50 }}"
+                                         style="width:{{ pct }}%"></div>
+                                </div>
+                                <span class="mini-progress-pct">{{ pct }}%</span>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Objets nécessitant maintenance -->
+    <div class="report-section">
+        <h3 class="report-section-title"><i class="fa-solid fa-triangle-exclamation"></i> Objets nécessitant une attention</h3>
+        {% if stats.low_battery %}
+        <div class="gestion-table-wrap">
+            <table class="gestion-table">
+                <thead>
+                    <tr>
+                        <th>Objet</th>
+                        <th>Type</th>
+                        <th>Pièce</th>
+                        <th>Batterie</th>
+                        <th>Statut</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for d in stats.low_battery %}
+                    <tr>
+                        <td><a href="/device/{{ d['id'] }}" class="gestion-device-name">{{ d['name'] }}</a></td>
+                        <td class="text-muted">{{ d['type'] }}</td>
+                        <td class="text-muted">{{ d['room'] or '—' }}</td>
+                        <td><span class="battery-val battery-low">{{ d['battery'] }}%</span></td>
+                        <td>
+                            <span class="{{ 'status-active' if d['status'] == 'actif' else 'status-inactive' }}">
+                                {{ d['status'] }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="report-empty"><i class="fa-solid fa-circle-check"></i> Aucun objet en batterie critique. Tout est en ordre !</p>
+        {% endif %}
+    </div>
+
+    <!-- Suppressions demandées -->
+    {% if stats.pending_delete > 0 %}
+    <div class="report-section">
+        <h3 class="report-section-title"><i class="fa-solid fa-trash-clock"></i> Suppressions en attente ({{ stats.pending_delete }})</h3>
+        <p class="text-muted" style="padding: 0 0 1rem">Ces objets ont été signalés pour suppression et attendent la validation d'un administrateur.</p>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}
