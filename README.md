@@ -16,7 +16,7 @@ python3 -m pip install --upgrade pip
 ```
 installer les import :
 ```
-pip install flask flask-socketio gevent
+pip install flask flask-socketio gevent flask-mail
 ```
 
 installer l'extension SQLite Viewer pour mieux visualiser la base de données
