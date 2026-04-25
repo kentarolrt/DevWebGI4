@@ -94,10 +94,16 @@
             <h2 class="form-title">Créer un compte</h2>
             <p class="form-subtitle">Rejoignez votre espace OsmHome</p>
 
+            {% if error %}
+            <div class="form-error">
+                <i class="fa-solid fa-circle-exclamation"></i> {{ error }}
+            </div>
+            {% endif %}
+
             <form action="" method="post">
                 <div class="form-group">
                     <label for="username">Pseudo</label>
-                    <input type="text" name="username" id="username" class="username" placeholder="ex : alex.home" required />
+                    <input type="text" name="username" id="username" class="username" placeholder="ex : alex.home" value="{{ form.username if form else '' }}" required />
                 </div>
 
                 <div class="form-row">

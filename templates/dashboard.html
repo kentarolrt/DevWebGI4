@@ -5,26 +5,28 @@
 {% block content %}
 
 {% set points = user_data['points'] or 0 %}
-{% if points < 5 %}
-    {% set level_label = 'Débutant' %}
-    {% set next_label = 'Intermédiaire' %}
-    {% set next_pts = 5 %}
-    {% set progress = (points / 5 * 100) | int %}
-{% elif points < 15 %}
-    {% set level_label = 'Intermédiaire' %}
-    {% set next_label = 'Avancé' %}
-    {% set next_pts = 15 %}
-    {% set progress = ((points - 5) / 10 * 100) | int %}
-{% elif points < 30 %}
-    {% set level_label = 'Avancé' %}
-    {% set next_label = 'Expert' %}
-    {% set next_pts = 30 %}
-    {% set progress = ((points - 15) / 15 * 100) | int %}
-{% else %}
+{% set db_level = user_data['level'] %}
+
+{% if db_level == 'expert' %}
     {% set level_label = 'Expert' %}
     {% set next_label = None %}
     {% set next_pts = None %}
     {% set progress = 100 %}
+{% elif db_level == 'avance' %}
+    {% set level_label = 'Avancé' %}
+    {% set next_label = 'Expert' %}
+    {% set next_pts = 30 %}
+    {% set progress = ((points - 15) / 15 * 100) | int %}
+{% elif db_level == 'intermediaire' %}
+    {% set level_label = 'Intermédiaire' %}
+    {% set next_label = 'Avancé' %}
+    {% set next_pts = 15 %}
+    {% set progress = ((points - 5) / 10 * 100) | int %}
+{% else %}
+    {% set level_label = 'Débutant' %}
+    {% set next_label = 'Intermédiaire' %}
+    {% set next_pts = 5 %}
+    {% set progress = (points / 5 * 100) | int %}
 {% endif %}
 
 <div class="dash-hero">

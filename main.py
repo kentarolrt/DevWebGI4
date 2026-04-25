@@ -31,9 +31,20 @@ def signup():
             flask.session['username'] = username
             return flask.redirect('/dashboard')
         else:
-            return flask.redirect(f'/signup?error={reason}')
+            SIGNUP_ERRORS = {
+                'username_taken': 'Ce pseudo est déjà utilisé, choisissez-en un autre.',
+            }
+            return flask.render_template('signup.html', user=None,
+                error=SIGNUP_ERRORS.get(reason, 'Erreur lors de la création du compte.'),
+                form=flask.request.form)
     else:
         return flask.render_template('signup.html', user=flask.session.get('username'))
+
+LOGIN_ERRORS = {
+    'empty':          'Veuillez remplir tous les champs.',
+    'user_not_found': 'Aucun compte trouvé avec ce pseudo.',
+    'wrong_password': 'Mot de passe incorrect.',
+}
 
 @app.route('/login', methods=['GET','POST'])
 def login():
@@ -42,7 +53,7 @@ def login():
         password = flask.request.form.get('password', '').strip()
 
         if not username or not password:
-            return flask.redirect('/login?error=empty')
+            return flask.render_template('login.html', user=None, error=LOGIN_ERRORS['empty'], form_username=username)
 
         success, reason = utils.loginUser(username, password)
 
@@ -51,7 +62,7 @@ def login():
             utils.recordConnection(username)
             return flask.redirect('/dashboard')
         else:
-            return flask.redirect(f'/login?error={reason}')
+            return flask.render_template('login.html', user=None, error=LOGIN_ERRORS.get(reason, 'Erreur de connexion.'), form_username=username)
     else:
         return flask.render_template('login.html', user=flask.session.get('username'))
 

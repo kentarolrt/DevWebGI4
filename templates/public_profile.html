@@ -18,7 +18,12 @@
                 <span class="profile-role-badge">{{ member['member_type'] or '—' }}</span>
             </div>
             <div class="profile-level-badge">
-                <span class="level-label">{{ member['level'] | capitalize }}</span>
+                <span class="level-label">
+                    {%- if member['level'] == 'expert' %}Expert
+                    {%- elif member['level'] == 'avance' %}Avancé
+                    {%- elif member['level'] == 'intermediaire' %}Intermédiaire
+                    {%- else %}Débutant{% endif %}
+                </span>
                 <span class="level-pts">{{ "%.2f"|format(member['points'] or 0) }} pts</span>
             </div>
         </div>
@@ -40,7 +45,12 @@
                 </div>
                 <div class="profile-field">
                     <span class="profile-field-label">Genre</span>
-                    <span class="profile-field-value">{{ member['gender'] or '—' }}</span>
+                    <span class="profile-field-value">
+                        {%- if member['gender'] == 'male' %}Homme
+                        {%- elif member['gender'] == 'female' %}Femme
+                        {%- elif member['gender'] == 'other' %}Autre
+                        {%- else %}—{% endif %}
+                    </span>
                 </div>
                 <div class="profile-field">
                     <span class="profile-field-label">Date de naissance</span>
@@ -48,11 +58,16 @@
                 </div>
                 <div class="profile-field">
                     <span class="profile-field-label">Rôle dans la maison</span>
-                    <span class="profile-field-value">{{ member['member_type'] or '—' }}</span>
+                    <span class="profile-field-value">{{ member['member_type'] | capitalize or '—' }}</span>
                 </div>
                 <div class="profile-field">
                     <span class="profile-field-label">Niveau</span>
-                    <span class="profile-field-value">{{ member['level'] | capitalize }}</span>
+                    <span class="profile-field-value">
+                        {%- if member['level'] == 'expert' %}Expert
+                        {%- elif member['level'] == 'avance' %}Avancé
+                        {%- elif member['level'] == 'intermediaire' %}Intermédiaire
+                        {%- else %}Débutant{% endif %}
+                    </span>
                 </div>
             </div>
         </div>
