@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 
 {% block title %}{{ device['name'] }} - OsmHome{% endblock %}
+
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/devices.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/device.css') }}">
@@ -8,50 +9,78 @@
 
 {% block content %}
 <div class="device-detail-page">
+
     <a href="javascript:history.back()" class="device-detail-back">← Retour</a>
 
-    <div class="device-detail-card">
-        <div class="device-detail-top">
-            <div class="device-icon device-icon--lg" aria-label="{{ device['type'] }}">
-                {% if device['type'] == 'thermostat' %}<i class="fa-solid fa-temperature-half"></i>
-                {% elif device['type'] == 'caméra' %}<i class="fa-solid fa-camera"></i>
-                {% elif device['type'] == 'éclairage' %}<i class="fa-solid fa-lightbulb"></i>
-                {% elif device['type'] == 'serrure' %}<i class="fa-solid fa-lock"></i>
-                {% elif device['type'] == 'capteur' %}<i class="fa-solid fa-satellite-dish"></i>
-                {% elif device['type'] == 'aspirateur' %}<i class="fa-solid fa-robot"></i>
-                {% elif device['type'] == 'électroménager' %}<i class="fa-solid fa-blender"></i>
-                {% elif device['type'] == 'volet' %}<i class="fa-solid fa-window-maximize"></i>
-                {% elif device['type'] == 'montre' %}<i class="fa-solid fa-clock"></i>
-                {% elif device['type'] == 'énergie' %}<i class="fa-solid fa-bolt"></i>
-                {% else %}<i class="fa-solid fa-box"></i>{% endif %}
+    <div class="device-detail-global">
+
+        <!-- GAUCHE : CARTE INFOS -->
+        <div class="device-detail-card">
+            <div class="device-detail-top">
+                <div class="device-icon device-icon--lg" aria-label="{{ device['type'] }}">
+                    {% if device['type'] == 'thermostat' %}<i class="fa-solid fa-temperature-half"></i>
+                    {% elif device['type'] == 'caméra' %}<i class="fa-solid fa-camera"></i>
+                    {% elif device['type'] == 'éclairage' %}<i class="fa-solid fa-lightbulb"></i>
+                    {% elif device['type'] == 'serrure' %}<i class="fa-solid fa-lock"></i>
+                    {% elif device['type'] == 'capteur' %}<i class="fa-solid fa-satellite-dish"></i>
+                    {% elif device['type'] == 'aspirateur' %}<i class="fa-solid fa-robot"></i>
+                    {% elif device['type'] == 'électroménager' %}<i class="fa-solid fa-blender"></i>
+                    {% elif device['type'] == 'volet' %}<i class="fa-solid fa-window-maximize"></i>
+                    {% elif device['type'] == 'montre' %}<i class="fa-solid fa-clock"></i>
+                    {% elif device['type'] == 'énergie' %}<i class="fa-solid fa-bolt"></i>
+                    {% else %}<i class="fa-solid fa-box"></i>{% endif %}
+                </div>
+
+                <div>
+                    <h1 class="device-detail-name">{{ device['name'] }}</h1>
+                    <span class="device-status {{ 'status-active' if device['status'] == 'actif' else 'status-inactive' }}">
+                        {{ device['status'] }}
+                    </span>
+                </div>
             </div>
-            <div>
-                <h1 class="device-detail-name">{{ device['name'] }}</h1>
-                <span class="device-status {{ 'status-active' if device['status'] == 'actif' else 'status-inactive' }}">
-                    {{ device['status'] }}
-                </span>
-            </div>
+
+            <p class="device-detail-description">{{ device['description'] }}</p>
+
+            <ul class="device-detail-infos">
+                <li><span>Type</span><strong>{{ device['type'] }}</strong></li>
+                <li><span>Marque</span><strong>{{ device['brand'] }}</strong></li>
+
+                {% if device['room'] %}
+                <li><span>Pièce</span><strong>{{ device['room'] }}</strong></li>
+                {% endif %}
+
+                <li><span>Connectivité</span><strong>{{ device['connectivity'] }}</strong></li>
+
+                {% if device['battery'] %}
+                <li><span>Batterie</span><strong>{{ device['battery'] }}%</strong></li>
+                {% endif %}
+            </ul>
+
+            {% if user %}
+            <input type="hidden" id="device-id" value="{{ device['id'] }}">
+            <p class="device-detail-points" id="points-msg">Consultation en cours...</p>
+            <script src="{{ url_for('static', filename='js/objet.js') }}"></script>
+            {% endif %}
         </div>
 
-        <p class="device-detail-description">{{ device['description'] }}</p>
+        <!-- MILIEU : IMAGE OBJET -->
+        <div class="device-product-image">
+            <img src="{{ url_for('static', filename='images/' + device['type'] + '.png') }}"
+                alt="{{ device['name'] }}"
+                onerror="this.style.display='none'">
+        </div>
 
-        <ul class="device-detail-infos">
-            <li><span>Type</span><strong>{{ device['type'] }}</strong></li>
-            <li><span>Marque</span><strong>{{ device['brand'] }}</strong></li>
-            {% if device['room'] %}
-            <li><span>Pièce</span><strong>{{ device['room'] }}</strong></li>
-            {% endif %}
-            <li><span>Connectivité</span><strong>{{ device['connectivity'] }}</strong></li>
-            {% if device['battery'] %}
-            <li><span>Batterie</span><strong>{{ device['battery'] }}%</strong></li>
-            {% endif %}
-        </ul>
-
-        {% if user %}
-        <input type="hidden" id="device-id" value="{{ device['id'] }}">
-        <p class="device-detail-points" id="points-msg">Consultation en cours...</p>
-        <script src="{{ url_for('static', filename='js/objet.js') }}"></script>
+        <!-- DROITE : BATTERIE -->
+        {% if device['battery'] %}
+        <div class="battery-panel">
+            <div class="battery-shell">
+                <div class="battery-fill" style="--battery-level: {{ device['battery'] }}%;"></div>
+            </div>
+            <p class="battery-label">{{ device['battery'] }}%</p>
+        </div>
         {% endif %}
+
     </div>
+
 </div>
 {% endblock %}

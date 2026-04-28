@@ -22,3 +22,215 @@
   .device-detail-page { padding: 0 0.75rem 2rem; margin-top: 1.5rem; }
   .device-detail-card { padding: 1.25rem; }
 }
+/* ── Layout flex pour batterie ───────────────── */
+.device-detail-flex {
+  display: flex;
+  gap: 2rem;
+  align-items: stretch;
+}
+
+/* contenu principal */
+.device-main-content {
+  flex: 1;
+}
+.device-detail-page {
+  max-width: 1180px;
+  margin: 2.5rem auto;
+  padding: 0 1.5rem 3rem;
+}
+
+.device-detail-card {
+  max-width: 620px;
+}
+
+.device-detail-flex {
+  display: flex;
+  gap: 2rem;
+  align-items: stretch;
+}
+
+/* contenu gauche */
+.device-main-content {
+  flex: 1;
+}
+
+/* batterie vraiment à droite */
+.battery-panel {
+  position: fixed;
+  right: 6rem;
+  top: 18%;
+  height: 62vh;
+  width: 170px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* forme de pile */
+.battery-shell {
+  width: 130px;
+  height: 430px;
+  border: 6px solid #191919;
+  border-radius: 28px;
+  position: relative;
+  background: #f8f8f8;
+  overflow: hidden;
+  box-shadow: 0 20px 45px rgba(0,0,0,0.14);
+}
+
+/* embout de pile en haut */
+.battery-shell::before {
+  content: "";
+  position: absolute;
+  top: -36px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 70px;
+  height: 34px;
+  background: #f8f8f8;
+  border: 6px solid #191919;
+  border-bottom: none;
+  border-radius: 18px 18px 0 0;
+}
+
+/* remplissage */
+.battery-fill {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: var(--battery-level);
+  background: linear-gradient(180deg, #36e39b 0%, #25c47c 100%);
+  border-radius: 18px 18px 20px 20px;
+  transition: height 0.5s ease;
+}
+
+/* effet brillant */
+.battery-fill::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,0.25),
+    transparent 35%,
+    rgba(255,255,255,0.12)
+  );
+}
+
+.battery-label {
+  margin-top: 1rem;
+  font-weight: 900;
+  font-size: 1.4rem;
+  color: var(--dark);
+}
+
+/* responsive : sur petit écran elle repasse sous la carte */
+@media (max-width: 1050px) {
+  .battery-panel {
+    position: static;
+    width: 100%;
+    height: auto;
+    margin-top: 2rem;
+  }
+
+  .battery-shell {
+    width: 90px;
+    height: 260px;
+  }
+
+  .battery-shell::before {
+    top: -26px;
+    width: 48px;
+    height: 24px;
+  }
+}
+
+.device-detail-flex {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4rem;
+}
+
+.device-image {
+  flex: 0 0 280px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.device-image img {
+  width: 100%;
+  max-height: 300px;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 20px rgba(0,0,0,0.1));
+  transition: transform 0.3s;
+}
+
+.device-image img:hover {
+  transform: scale(1.05);
+}
+
+.device-detail-page {
+  max-width: 1450px;
+  margin: 2.5rem auto;
+  padding: 0 1.5rem 3rem;
+}
+
+.device-detail-global {
+  display: grid;
+  grid-template-columns: 560px 1fr 220px;
+  align-items: center;
+  gap: 4rem;
+}
+
+.device-detail-card {
+  width: 100%;
+}
+
+.device-product-image {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 420px;
+}
+
+.device-product-image img {
+  max-width: 420px;
+  max-height: 420px;
+  width: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 24px 35px rgba(0,0,0,0.18));
+}
+
+.battery-panel {
+  position: static;
+  width: 220px;
+  height: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.battery-fill {
+  height: var(--battery-level);
+}
+
+@media (max-width: 1050px) {
+  .device-detail-global {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .device-product-image {
+    min-height: auto;
+  }
+
+  .battery-panel {
+    width: 100%;
+  }
+}
