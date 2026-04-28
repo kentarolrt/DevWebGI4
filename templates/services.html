@@ -44,7 +44,9 @@
 
     {% if not searched %}
     <div class="no-results">
-        <p>Utilisez les filtres ci-dessus pour trouver un service.</p>
+        <div class="no-results-icon"><i class="fa-solid fa-gears"></i></div>
+        <p class="no-results-title">Découvre nos services</p>
+        <p>Utilise les filtres ci-dessus pour trouver un service.</p>
     </div>
 
     {% elif results %}
@@ -79,7 +81,9 @@
 
     {% else %}
     <div class="no-results">
-        <p>Aucun service trouvé pour cette recherche.</p>
+        <div class="no-results-icon"><i class="fa-regular fa-face-meh"></i></div>
+        <p class="no-results-title">Aucun service trouvé</p>
+        <p>Essaie une autre catégorie ou modifie les filtres.</p>
     </div>
     {% endif %}
 </div>

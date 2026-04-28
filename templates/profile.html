@@ -28,12 +28,7 @@
                 <span class="profile-role-badge">{{ user_data['member_type'] or '—' }}</span>
             </div>
             <div class="profile-level-badge">
-                <span class="level-label">
-                    {%- if user_data['level'] == 'expert' %}Expert
-                    {%- elif user_data['level'] == 'avance' %}Avancé
-                    {%- elif user_data['level'] == 'intermediaire' %}Intermédiaire
-                    {%- else %}Débutant{% endif %}
-                </span>
+                <span class="level-label">{{ user_data['level'] | level_label }}</span>
                 <span class="level-pts">{{ "%.2f"|format(user_data['points'] or 0) }} pts</span>
             </div>
         </div>

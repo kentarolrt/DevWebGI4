@@ -22,6 +22,17 @@ app.config['MAIL_DEFAULT_SENDER'] = app.config['MAIL_USERNAME']
 mail = flask_mail.Mail(app)
 socket = flask_socketio.SocketIO(app, async_mode='gevent')
 
+_LEVEL_LABELS = {
+    'debutant':      'Débutant',
+    'intermediaire': 'Intermédiaire',
+    'avance':        'Avancé',
+    'expert':        'Expert',
+}
+
+@app.template_filter('level_label')
+def level_label_filter(key: str) -> str:
+    return _LEVEL_LABELS.get(key, key.capitalize())
+
 def send_verification_email(to_email: str, username: str, token: str) -> bool:
     verify_url = flask.url_for('verify_email', token=token, _external=True)
     msg = flask_mail.Message('Validez votre inscription - OsmHome',
@@ -190,7 +201,7 @@ def api_level_up():
             'points': float(user_data['points']),
             'level': result
         }, room=flask.session['username'])
-        return flask.jsonify({'ok': True, 'level': result})
+        return flask.jsonify({'ok': True, 'level': result, 'points': float(user_data['points'])})
     return flask.jsonify({'ok': False, 'error': result})
 
 @app.route('/api/points')

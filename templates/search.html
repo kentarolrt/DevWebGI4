@@ -25,7 +25,9 @@
 
     {% if not searched %}
     <div class="no-results">
-        <p>Utilisez la barre de recherche ci-dessus pour trouver un objet connecté.</p>
+        <div class="no-results-icon"><i class="fa-solid fa-house-signal"></i></div>
+        <p class="no-results-title">Explore tes appareils</p>
+        <p>Lance une recherche pour trouver un objet connecté.</p>
     </div>
 
     {% elif results %}
@@ -71,7 +73,9 @@
 
     {% else %}
     <div class="no-results">
-        <p>Aucun objet trouvé pour cette recherche.</p>
+        <div class="no-results-icon"><i class="fa-regular fa-face-meh"></i></div>
+        <p class="no-results-title">Aucun résultat</p>
+        <p>Essaie un autre mot-clé ou modifie les filtres.</p>
     </div>
     {% endif %}
 </div>

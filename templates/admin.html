@@ -36,7 +36,7 @@
                         </a>
                     </td>
                     <td>{{ s['member_type'] or '—' }}</td>
-                    <td><span class="level-badge level-{{ s['level'] }}">{{ s['level'] | capitalize }}</span></td>
+                    <td><span class="level-badge level-{{ s['level'] }}">{{ s['level'] | level_label }}</span></td>
                     <td>{{ "%.2f"|format(s['points']) }}</td>
                     <td class="stat-num">{{ s['connection_count'] }}</td>
                     <td class="stat-num">{{ s['actions'] or 0 }}</td>

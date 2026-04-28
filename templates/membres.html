@@ -8,7 +8,7 @@
 
     <div class="members-header">
         <h2>Membres de la maison</h2>
-        <p>{{ members | length }} membre{{ 's' if members | length > 1 }}</p>
+        <p>{{ members | length }} membre{{ 's' if members | length > 1 else '' }} dans votre foyer</p>
     </div>
 
     <div class="members-grid">

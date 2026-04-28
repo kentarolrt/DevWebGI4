@@ -14,7 +14,7 @@
 
     <div class="device-detail-global">
 
-        <!-- GAUCHE : CARTE INFOS -->
+        <!-- CARTE INFOS -->
         <div class="device-detail-card">
             <div class="device-detail-top">
                 <div class="device-icon device-icon--lg" aria-label="{{ device['type'] }}">
@@ -63,14 +63,7 @@
             {% endif %}
         </div>
 
-        <!-- MILIEU : IMAGE OBJET -->
-        <div class="device-product-image">
-            <img src="{{ url_for('static', filename='images/' + device['type'] + '.png') }}"
-                alt="{{ device['name'] }}"
-                onerror="this.style.display='none'">
-        </div>
-
-        <!-- DROITE : BATTERIE -->
+        <!-- BATTERIE -->
         {% if device['battery'] %}
         <div class="battery-panel">
             <div class="battery-shell">
