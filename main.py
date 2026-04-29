@@ -338,22 +338,26 @@ def logout():
 
 @app.route('/search')
 def search():
-    query       = flask.request.args.get('q', '').strip()
-    filter_type = flask.request.args.get('type', '').strip()
+    query         = flask.request.args.get('q', '').strip()
+    filter_type   = flask.request.args.get('type', '').strip()
     filter_status = flask.request.args.get('status', '').strip()
+    filter_room   = flask.request.args.get('room', '').strip()
 
-    searched  = bool(query or filter_type or filter_status)
-    results   = utils.searchDevices(query, filter_type, filter_status) if searched else None
-    types     = utils.getTypes()
+    searched = bool(query or filter_type or filter_status or filter_room)
+    results  = utils.searchDevices(query, filter_type, filter_status, filter_room) if searched else None
+    types    = utils.getTypes()
+    rooms    = utils.getRooms()
 
     return flask.render_template(
         'search.html',
         user=flask.session.get('username'),
         results=results,
         types=types,
+        rooms=rooms,
         query=query,
         filter_type=filter_type,
         filter_status=filter_status,
+        filter_room=filter_room,
         searched=searched
     )
 

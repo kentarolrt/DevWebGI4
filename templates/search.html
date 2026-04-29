@@ -26,6 +26,12 @@
             <option value="actif"   {% if filter_status == 'actif'   %}selected{% endif %}>Actif</option>
             <option value="inactif" {% if filter_status == 'inactif' %}selected{% endif %}>Inactif</option>
         </select>
+        <select name="room">
+            <option value="">Toutes les pièces</option>
+            {% for r in rooms %}
+            <option value="{{ r }}" {% if filter_room == r %}selected{% endif %}>{{ r }}</option>
+            {% endfor %}
+        </select>
         <button type="submit">Rechercher</button>
     </form>
 
@@ -38,6 +44,7 @@
             {% if query %}mot-clé : <strong>{{ query }}</strong>{% endif %}
             {% if filter_type %} · type : <strong>{{ filter_type }}</strong>{% endif %}
             {% if filter_status %} · état : <strong>{{ filter_status }}</strong>{% endif %}
+            {% if filter_room %} · pièce : <strong>{{ filter_room }}</strong>{% endif %}
         </p>
         {% endif %}
     </div>

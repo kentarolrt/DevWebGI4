@@ -216,9 +216,9 @@ def updateUser(username: str, field: str, value: str) -> tuple[bool, str]:
     db.commit()
     return True, 'ok'
 
-def searchDevices(query='', filter_type='', filter_status='') -> list:
+def searchDevices(query='', filter_type='', filter_status='', filter_room='') -> list:
     db = openDB()
-    
+
     sql = 'SELECT * FROM devices WHERE 1=1'
     params = []
 
@@ -234,8 +234,19 @@ def searchDevices(query='', filter_type='', filter_status='') -> list:
         sql += ' AND status = ?'
         params.append(filter_status)
 
+    if filter_room:
+        sql += ' AND room = ?'
+        params.append(filter_room)
+
     sql += ' ORDER BY name'
     return db.execute(sql, params).fetchall()
+
+def getRooms() -> list:
+    db = openDB()
+    rows = db.execute(
+        'SELECT DISTINCT room FROM devices WHERE room IS NOT NULL AND room != "" ORDER BY room'
+    ).fetchall()
+    return [row['room'] for row in rows]
 
 def getConnectionCount(username: str) -> int:
     db = openDB()
