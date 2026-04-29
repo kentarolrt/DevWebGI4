@@ -1,5 +1,6 @@
 import sqlite3
 import secrets
+import datetime
 import flask
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -104,6 +105,24 @@ def initDB():
         db.commit()
     except Exception:
         pass
+
+    try:
+        db.execute('ALTER TABLE services ADD COLUMN slug TEXT')
+        db.commit()
+    except Exception:
+        pass
+
+    db.executescript('''
+        CREATE TABLE IF NOT EXISTS plannings (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT NOT NULL,
+            device_id INTEGER NOT NULL,
+            action TEXT NOT NULL,
+            scheduled_at TEXT NOT NULL,
+            executed INTEGER DEFAULT 0
+        );
+    ''')
+    db.commit()
 
 
 MEMBER_TYPES = ['père', 'mère', 'fils', 'fille']
@@ -313,6 +332,163 @@ def getCategories() -> list:
     db = openDB()
     rows = db.execute('SELECT DISTINCT category FROM services ORDER BY category').fetchall()
     return [row['category'] for row in rows]
+
+def getServiceBySlug(slug: str):
+    db = openDB()
+    return db.execute('SELECT * FROM services WHERE slug = ?', (slug,)).fetchone()
+
+def getAllServices() -> list:
+    db = openDB()
+    return db.execute('SELECT * FROM services ORDER BY id').fetchall()
+
+def seedServices():
+    db = openDB()
+    existing = db.execute('SELECT COUNT(*) as cnt FROM services WHERE slug IS NOT NULL').fetchone()['cnt']
+    if existing >= 5:
+        return
+    db.execute('DELETE FROM services')
+    try:
+        db.execute("DELETE FROM sqlite_sequence WHERE name='services'")
+    except Exception:
+        pass
+    rows = [
+        ('Rapport énergétique',
+         'Consultez en temps réel les statistiques de consommation et l\'état de vos appareils.',
+         'Énergie', 'libre', 'rapport-energie'),
+        ('Contrôle de groupe',
+         'Activez ou désactivez tous les appareils d\'un même type en un seul clic.',
+         'Automatisation', 'restreint', 'controle-groupe'),
+        ('Surveillance sécurité',
+         'Surveillez l\'état de vos caméras, serrures et capteurs, et recevez des alertes.',
+         'Sécurité', 'libre', 'surveillance'),
+        ('Planning',
+         'Programmez des actions automatiques sur vos appareils à l\'heure de votre choix.',
+         'Automatisation', 'restreint', 'planning'),
+        ('Diagnostic système',
+         'Analysez la santé de vos appareils : batterie, connectivité et état général.',
+         'Santé', 'libre', 'diagnostic'),
+    ]
+    db.executemany(
+        'INSERT INTO services (name, description, category, access, slug) VALUES (?,?,?,?,?)', rows
+    )
+    db.commit()
+
+def getServiceExtraData(slug: str) -> dict:
+    db = openDB()
+    if slug == 'rapport-energie':
+        devices = db.execute('SELECT * FROM devices').fetchall()
+        total = len(devices)
+        active = sum(1 for d in devices if d['status'] == 'actif')
+        battery_devs = [d for d in devices if d['battery'] is not None]
+        avg_battery = round(sum(d['battery'] for d in battery_devs) / len(battery_devs)) if battery_devs else None
+        low_battery = [d for d in battery_devs if d['battery'] < 20]
+        by_type = {}
+        for d in devices:
+            t = d['type']
+            if t not in by_type:
+                by_type[t] = {'total': 0, 'active': 0}
+            by_type[t]['total'] += 1
+            if d['status'] == 'actif':
+                by_type[t]['active'] += 1
+        return {
+            'total': total, 'active': active, 'inactive': total - active,
+            'avg_battery': avg_battery, 'low_battery': low_battery, 'by_type': by_type,
+        }
+
+    if slug == 'controle-groupe':
+        devices = db.execute('SELECT * FROM devices ORDER BY type, name').fetchall()
+        by_type = {}
+        for d in devices:
+            t = d['type']
+            if t not in by_type:
+                by_type[t] = {'devices': [], 'active': 0, 'total': 0}
+            by_type[t]['devices'].append(dict(d))
+            by_type[t]['total'] += 1
+            if d['status'] == 'actif':
+                by_type[t]['active'] += 1
+        return {'by_type': by_type}
+
+    if slug == 'surveillance':
+        security_types = ('caméra', 'serrure', 'capteur')
+        devices = db.execute(
+            'SELECT * FROM devices WHERE type IN (?,?,?) ORDER BY type, name', security_types
+        ).fetchall()
+        alerts = [d for d in devices if d['status'] == 'inactif']
+        return {'devices': devices, 'alerts': alerts}
+
+    if slug == 'diagnostic':
+        devices = db.execute('SELECT * FROM devices ORDER BY name').fetchall()
+        issues = []
+        for d in devices:
+            issue_list = []
+            if d['battery'] is not None and d['battery'] < 20:
+                issue_list.append(f'Batterie faible ({d["battery"]}%)')
+            if d['status'] == 'inactif':
+                issue_list.append('Inactif')
+            if issue_list:
+                issues.append({'device': dict(d), 'issues': issue_list})
+        issue_ids = {item['device']['id'] for item in issues}
+        return {
+            'devices': devices,
+            'issues': issues,
+            'issue_ids': issue_ids,
+            'total': len(devices),
+            'healthy': len(devices) - len(issues),
+        }
+
+    return {}
+
+def toggleDevicesByType(type_: str, action: str) -> int:
+    db = openDB()
+    new_status = 'actif' if action == 'activer' else 'inactif'
+    cursor = db.execute('UPDATE devices SET status = ? WHERE type = ?', (new_status, type_))
+    db.commit()
+    return cursor.rowcount
+
+def getPlannings(username: str) -> list:
+    db = openDB()
+    return db.execute(
+        '''SELECT p.*, d.name as device_name
+           FROM plannings p JOIN devices d ON d.id = p.device_id
+           WHERE p.username = ? AND p.executed = 0
+           ORDER BY p.scheduled_at''',
+        (username,)
+    ).fetchall()
+
+def addPlanning(username: str, device_id: int, action: str, scheduled_at: str) -> tuple:
+    db = openDB()
+    if not db.execute('SELECT id FROM devices WHERE id = ?', (device_id,)).fetchone():
+        return False, 'device_not_found'
+    if action not in ('activer', 'désactiver'):
+        return False, 'invalid_action'
+    db.execute(
+        'INSERT INTO plannings (username, device_id, action, scheduled_at) VALUES (?,?,?,?)',
+        (username, device_id, action, scheduled_at)
+    )
+    db.commit()
+    return True, 'ok'
+
+def deletePlanning(planning_id: int, username: str) -> bool:
+    db = openDB()
+    db.execute('DELETE FROM plannings WHERE id = ? AND username = ?', (planning_id, username))
+    db.commit()
+    return True
+
+def executeDuePlannings() -> int:
+    now = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M')
+    db = openDB()
+    due = db.execute(
+        'SELECT * FROM plannings WHERE executed = 0 AND scheduled_at <= ?', (now,)
+    ).fetchall()
+    count = 0
+    for p in due:
+        new_status = 'actif' if p['action'] == 'activer' else 'inactif'
+        db.execute('UPDATE devices SET status = ? WHERE id = ?', (new_status, p['device_id']))
+        db.execute('UPDATE plannings SET executed = 1 WHERE id = ?', (p['id'],))
+        count += 1
+    if count:
+        db.commit()
+    return count
 
 def getAllMembers() -> list:
     db = openDB()

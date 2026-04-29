@@ -1,40 +1,388 @@
 {% extends 'base.html' %}
 
 {% block title %}{{ service['name'] }} - OsmHome{% endblock %}
-{% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/devices.css') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/device.css') }}">
-{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/services.css') }}">{% endblock %}
 
 {% block content %}
-<div class="device-detail-page">
-    <a href="javascript:history.back()" class="device-detail-back">← Retour</a>
+<div class="svc-detail-page">
+<div class="svc-detail-inner">
 
-    <div class="device-detail-card">
-        <div class="device-detail-top">
-            <div class="device-icon device-icon--lg" aria-label="{{ service['category'] }}">
-                {% if service['category'] == 'Sécurité' %}<i class="fa-solid fa-shield-halved"></i>
-                {% elif service['category'] == 'Énergie' %}<i class="fa-solid fa-bolt"></i>
-                {% elif service['category'] == 'Confort' %}<i class="fa-solid fa-house"></i>
-                {% elif service['category'] == 'Multimédia' %}<i class="fa-solid fa-play"></i>
-                {% elif service['category'] == 'Automatisation' %}<i class="fa-solid fa-gears"></i>
-                {% elif service['category'] == 'Santé' %}<i class="fa-solid fa-heart-pulse"></i>
-                {% else %}<i class="fa-solid fa-wrench"></i>{% endif %}
+    <a href="/services" class="svc-back">← Retour aux services</a>
+
+    <div class="svc-detail-header">
+        <div class="svc-card-icon svc-icon--{{ service['slug'] }} svc-icon--lg">
+            {% if service['slug'] == 'rapport-energie' %}<i class="fa-solid fa-bolt"></i>
+            {% elif service['slug'] == 'controle-groupe' %}<i class="fa-solid fa-sliders"></i>
+            {% elif service['slug'] == 'surveillance' %}<i class="fa-solid fa-shield-halved"></i>
+            {% elif service['slug'] == 'planning' %}<i class="fa-solid fa-calendar-check"></i>
+            {% elif service['slug'] == 'diagnostic' %}<i class="fa-solid fa-heart-pulse"></i>
+            {% else %}<i class="fa-solid fa-gears"></i>{% endif %}
+        </div>
+        <div>
+            <h1>{{ service['name'] }}</h1>
+            <p>{{ service['description'] }}</p>
+            <span class="svc-badge svc-badge--{{ service['access'] }}">{{ service['access'] }}</span>
+            <span class="svc-cat-pill">{{ service['category'] }}</span>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+         SERVICE: RAPPORT ÉNERGÉTIQUE
+    ══════════════════════════════════════════════════════ -->
+    {% if service['slug'] == 'rapport-energie' %}
+
+    <div class="svc-stats-row">
+        <div class="svc-stat-card">
+            <div class="svc-stat-value">{{ data.total }}</div>
+            <div class="svc-stat-label">Appareils au total</div>
+        </div>
+        <div class="svc-stat-card svc-stat-card--green">
+            <div class="svc-stat-value">{{ data.active }}</div>
+            <div class="svc-stat-label">Actifs</div>
+        </div>
+        <div class="svc-stat-card svc-stat-card--muted">
+            <div class="svc-stat-value">{{ data.inactive }}</div>
+            <div class="svc-stat-label">Inactifs</div>
+        </div>
+        <div class="svc-stat-card svc-stat-card--blue">
+            <div class="svc-stat-value">{% if data.avg_battery %}{{ data.avg_battery }}%{% else %}—{% endif %}</div>
+            <div class="svc-stat-label">Batterie moyenne</div>
+        </div>
+    </div>
+
+    {% if data.by_type %}
+    <div class="svc-section">
+        <h2>Répartition par type</h2>
+        <div class="svc-type-list">
+            {% for type, info in data.by_type.items() %}
+            {% set pct = (info.active / info.total * 100) | int %}
+            <div class="svc-type-row">
+                <span class="svc-type-name">{{ type }}</span>
+                <div class="svc-bar-wrap">
+                    <div class="svc-bar-fill" style="width: {{ pct }}%"></div>
+                </div>
+                <span class="svc-type-stat">{{ info.active }}/{{ info.total }} actifs</span>
             </div>
-            <div>
-                <h1 class="device-detail-name">{{ service['name'] }}</h1>
-                <span class="device-status {{ 'status-active' if service['access'] == 'libre' else 'status-inactive' }}">
-                    {{ service['access'] }}
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if data.low_battery %}
+    <div class="svc-section">
+        <h2><i class="fa-solid fa-triangle-exclamation"></i> Batterie faible</h2>
+        <div class="svc-alert-list">
+            {% for d in data.low_battery %}
+            <div class="svc-alert-item">
+                <span class="svc-alert-name">{{ d['name'] }}</span>
+                <span class="svc-alert-detail">{{ d['type'] }} · {{ d['battery'] }}%</span>
+                <div class="svc-battery-bar">
+                    <div class="svc-battery-fill" style="width: {{ d['battery'] }}%"></div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% else %}
+    <div class="svc-ok-banner"><i class="fa-solid fa-circle-check"></i> Toutes les batteries sont au-dessus de 20 %.</div>
+    {% endif %}
+
+
+    <!-- ══════════════════════════════════════════════════════
+         SERVICE: CONTRÔLE DE GROUPE
+    ══════════════════════════════════════════════════════ -->
+    {% elif service['slug'] == 'controle-groupe' %}
+
+    <div class="svc-section">
+        <h2>Contrôler les appareils par type</h2>
+        <p class="svc-hint">Cliquez sur Activer ou Désactiver pour agir sur tous les appareils du même type.</p>
+    </div>
+
+    <div class="svc-group-grid">
+        {% for type, info in data.by_type.items() %}
+        <div class="svc-group-card" data-type="{{ type }}">
+            <div class="svc-group-header">
+                <span class="svc-group-type">{{ type }}</span>
+                <span class="svc-group-count"><span class="grp-active">{{ info.active }}</span>/{{ info.total }} actifs</span>
+            </div>
+            <div class="svc-group-actions">
+                <button class="btn-group-toggle btn-group-on" data-type="{{ type }}" data-action="activer">
+                    <i class="fa-solid fa-play"></i> Activer
+                </button>
+                <button class="btn-group-toggle btn-group-off" data-type="{{ type }}" data-action="désactiver">
+                    <i class="fa-solid fa-stop"></i> Désactiver
+                </button>
+            </div>
+            <div class="svc-group-feedback" id="feedback-{{ loop.index }}"></div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <script>
+    document.querySelectorAll('.btn-group-toggle').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const type = btn.dataset.type;
+            const action = btn.dataset.action;
+            const card = btn.closest('.svc-group-card');
+            const feedback = card.querySelector('.svc-group-feedback');
+            card.querySelectorAll('.btn-group-toggle').forEach(b => b.disabled = true);
+            fetch('/api/service/group-toggle', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({type, action})
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.ok) {
+                    const newStatus = data.new_status === 'actif' ? data.count : 0;
+                    const activeEl = card.querySelector('.grp-active');
+                    if (activeEl) activeEl.textContent = newStatus;
+                    feedback.textContent = `✓ ${data.count} appareil(s) ${action === 'activer' ? 'activé(s)' : 'désactivé(s)'}`;
+                    feedback.className = 'svc-group-feedback svc-feedback--ok';
+                } else {
+                    feedback.textContent = 'Erreur lors de l\'action.';
+                    feedback.className = 'svc-group-feedback svc-feedback--err';
+                }
+                card.querySelectorAll('.btn-group-toggle').forEach(b => b.disabled = false);
+            });
+        });
+    });
+    </script>
+
+
+    <!-- ══════════════════════════════════════════════════════
+         SERVICE: SURVEILLANCE SÉCURITÉ
+    ══════════════════════════════════════════════════════ -->
+    {% elif service['slug'] == 'surveillance' %}
+
+    {% if data.alerts %}
+    <div class="svc-alert-banner">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <strong>{{ data.alerts | length }} appareil(s) de sécurité inactif(s) !</strong>
+        Vérifiez l'état de vos équipements.
+    </div>
+    {% else %}
+    <div class="svc-ok-banner"><i class="fa-solid fa-circle-check"></i> Tous vos appareils de sécurité sont actifs.</div>
+    {% endif %}
+
+    {% if data.devices %}
+    <div class="svc-section">
+        <h2>Appareils de sécurité</h2>
+        <div class="svc-device-table svc-table--5col">
+            <div class="svc-table-head">
+                <span>Appareil</span><span>Type</span><span>Pièce</span><span>Connectivité</span><span>État</span>
+            </div>
+            {% for d in data.devices %}
+            <div class="svc-table-row {% if d['status'] == 'inactif' %}svc-row--alert{% endif %}">
+                <span class="svc-device-name">
+                    {% if d['type'] == 'caméra' %}<i class="fa-solid fa-camera"></i>
+                    {% elif d['type'] == 'serrure' %}<i class="fa-solid fa-lock"></i>
+                    {% else %}<i class="fa-solid fa-satellite-dish"></i>{% endif %}
+                    {{ d['name'] }}
+                </span>
+                <span>{{ d['type'] }}</span>
+                <span>{{ d['room'] or '—' }}</span>
+                <span>{{ d['connectivity'] or '—' }}</span>
+                <span class="svc-status-pill {{ 'svc-pill--on' if d['status'] == 'actif' else 'svc-pill--off' }}">
+                    {{ d['status'] }}
                 </span>
             </div>
+            {% endfor %}
         </div>
-
-        <p class="device-detail-description">{{ service['description'] }}</p>
-
-        <ul class="device-detail-infos">
-            <li><span>Catégorie</span><strong>{{ service['category'] }}</strong></li>
-            <li><span>Accès</span><strong>{{ service['access'] | capitalize }}</strong></li>
-        </ul>
     </div>
+    {% else %}
+    <div class="svc-empty">
+        <i class="fa-solid fa-shield-halved"></i>
+        <p>Aucun appareil de sécurité enregistré (caméra, serrure, capteur).</p>
+    </div>
+    {% endif %}
+
+
+    <!-- ══════════════════════════════════════════════════════
+         SERVICE: PLANNING
+    ══════════════════════════════════════════════════════ -->
+    {% elif service['slug'] == 'planning' %}
+
+    <div class="svc-section">
+        <h2>Programmer une action</h2>
+        <div class="svc-planning-form" id="planning-form">
+            <div class="form-group">
+                <label>Appareil</label>
+                <select id="plan-device">
+                    <option value="">-- Choisir un appareil --</option>
+                    {% for d in all_devices %}
+                    <option value="{{ d['id'] }}">{{ d['name'] }} ({{ d['type'] }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Action</label>
+                <div class="svc-radio-group">
+                    <label class="svc-radio"><input type="radio" name="plan-action" value="activer" checked> <span>Activer</span></label>
+                    <label class="svc-radio"><input type="radio" name="plan-action" value="désactiver"> <span>Désactiver</span></label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Date et heure</label>
+                <input type="datetime-local" id="plan-datetime">
+            </div>
+            <button class="btn btn-primary" id="btn-add-plan"><i class="fa-solid fa-plus"></i> Ajouter</button>
+            <div id="plan-feedback" class="svc-inline-feedback"></div>
+        </div>
+    </div>
+
+    <div class="svc-section">
+        <h2>Tâches planifiées</h2>
+        {% if plannings %}
+        <div class="svc-planning-list" id="planning-list">
+            {% for p in plannings %}
+            <div class="svc-plan-row" id="plan-{{ p['id'] }}">
+                <div class="svc-plan-info">
+                    <strong>{{ p['device_name'] }}</strong>
+                    <span class="svc-plan-action svc-plan-action--{{ 'on' if p['action'] == 'activer' else 'off' }}">
+                        {{ p['action'] }}
+                    </span>
+                </div>
+                <div class="svc-plan-time"><i class="fa-regular fa-clock"></i> {{ p['scheduled_at'].replace('T', ' ') }}</div>
+                <button class="btn btn-sm btn-danger btn-delete-plan" data-id="{{ p['id'] }}">
+                    <i class="fa-solid fa-trash"></i>
+                </button>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="svc-empty" id="planning-empty">
+            <i class="fa-regular fa-calendar"></i>
+            <p>Aucune tâche planifiée pour le moment.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+    document.getElementById('btn-add-plan').addEventListener('click', () => {
+        const device_id = parseInt(document.getElementById('plan-device').value);
+        const action = document.querySelector('input[name="plan-action"]:checked').value;
+        const scheduled_at = document.getElementById('plan-datetime').value;
+        const fb = document.getElementById('plan-feedback');
+        if (!device_id || !scheduled_at) {
+            fb.textContent = 'Veuillez remplir tous les champs.';
+            fb.className = 'svc-inline-feedback svc-feedback--err';
+            return;
+        }
+        fetch('/api/service/planning', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({device_id, action, scheduled_at})
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.ok) {
+                fb.textContent = '✓ Tâche ajoutée. Rechargement...';
+                fb.className = 'svc-inline-feedback svc-feedback--ok';
+                setTimeout(() => location.reload(), 900);
+            } else {
+                fb.textContent = 'Erreur : ' + (data.reason || 'inconnue');
+                fb.className = 'svc-inline-feedback svc-feedback--err';
+            }
+        });
+    });
+
+    document.querySelectorAll('.btn-delete-plan').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const id = btn.dataset.id;
+            fetch(`/api/service/planning/${id}/delete`, {method: 'POST'})
+            .then(r => r.json())
+            .then(data => {
+                if (data.ok) {
+                    const row = document.getElementById('plan-' + id);
+                    if (row) row.remove();
+                    const list = document.getElementById('planning-list');
+                    if (list && list.children.length === 0) {
+                        list.insertAdjacentHTML('afterend',
+                            '<div class="svc-empty"><i class="fa-regular fa-calendar"></i><p>Aucune tâche planifiée.</p></div>');
+                        list.remove();
+                    }
+                }
+            });
+        });
+    });
+    </script>
+
+
+    <!-- ══════════════════════════════════════════════════════
+         SERVICE: DIAGNOSTIC SYSTÈME
+    ══════════════════════════════════════════════════════ -->
+    {% elif service['slug'] == 'diagnostic' %}
+
+    <div class="svc-stats-row">
+        <div class="svc-stat-card svc-stat-card--green">
+            <div class="svc-stat-value">{{ data.healthy }}</div>
+            <div class="svc-stat-label">En bonne santé</div>
+        </div>
+        <div class="svc-stat-card {% if data.issues %}svc-stat-card--red{% else %}svc-stat-card--muted{% endif %}">
+            <div class="svc-stat-value">{{ data.issues | length }}</div>
+            <div class="svc-stat-label">Problème(s)</div>
+        </div>
+        <div class="svc-stat-card">
+            <div class="svc-stat-value">{{ data.total }}</div>
+            <div class="svc-stat-label">Total appareils</div>
+        </div>
+        <div class="svc-stat-card svc-stat-card--blue">
+            <div class="svc-stat-value">{% if data.total %}{{ ((data.healthy / data.total) * 100) | int }}%{% else %}—{% endif %}</div>
+            <div class="svc-stat-label">Score de santé</div>
+        </div>
+    </div>
+
+    {% if data.issues %}
+    <div class="svc-section">
+        <h2><i class="fa-solid fa-triangle-exclamation"></i> Problèmes détectés</h2>
+        <div class="svc-diag-issues">
+            {% for item in data.issues %}
+            <div class="svc-diag-issue">
+                <div class="svc-diag-name">
+                    <strong>{{ item.device.name }}</strong>
+                    <span class="svc-diag-type">{{ item.device.type }}</span>
+                </div>
+                <ul class="svc-issue-list">
+                    {% for issue in item.issues %}<li>{{ issue }}</li>{% endfor %}
+                </ul>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% else %}
+    <div class="svc-ok-banner"><i class="fa-solid fa-circle-check"></i> Aucun problème détecté sur vos appareils.</div>
+    {% endif %}
+
+    <div class="svc-section">
+        <h2>État de tous les appareils</h2>
+        <div class="svc-device-table svc-table--4col">
+            <div class="svc-table-head">
+                <span>Appareil</span><span>Type</span><span>Batterie</span><span>État</span>
+            </div>
+            {% for d in data.devices %}
+            <div class="svc-table-row {% if d['id'] in data.issue_ids %}svc-row--alert{% endif %}">
+                <span class="svc-device-name">{{ d['name'] }}</span>
+                <span>{{ d['type'] }}</span>
+                <span>
+                    {% if d['battery'] is not none %}
+                    <div class="svc-mini-bar">
+                        <div class="svc-mini-fill {% if d['battery'] < 20 %}svc-mini-fill--red{% elif d['battery'] < 50 %}svc-mini-fill--orange{% endif %}"
+                             style="width: {{ d['battery'] }}%"></div>
+                    </div>
+                    {{ d['battery'] }}%
+                    {% else %}—{% endif %}
+                </span>
+                <span class="svc-status-pill {{ 'svc-pill--on' if d['status'] == 'actif' else 'svc-pill--off' }}">
+                    {{ d['status'] }}
+                </span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    {% endif %}
+
+</div>
 </div>
 {% endblock %}

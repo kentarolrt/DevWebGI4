@@ -359,38 +359,88 @@ def search():
 
 @app.route('/services')
 def services():
-    query           = flask.request.args.get('q', '').strip()
-    filter_category = flask.request.args.get('category', '').strip()
-    filter_access   = flask.request.args.get('access', '').strip()
+    all_services = utils.getAllServices()
+    return flask.render_template('services.html', user=flask.session.get('username'), all_services=all_services)
 
-    searched   = bool(query or filter_category or filter_access)
-    results    = utils.searchServices(query, filter_category, filter_access) if searched else None
-    categories = utils.getCategories()
-
-    return flask.render_template(
-        'services.html',
-        user=flask.session.get('username'),
-        results=results,
-        categories=categories,
-        query=query,
-        filter_category=filter_category,
-        filter_access=filter_access,
-        searched=searched
-    )
-
-@app.route('/service/<int:service_id>')
-def service_detail(service_id):
+@app.route('/service/<slug>')
+def service_detail(slug):
     if 'username' not in flask.session:
         return flask.redirect('/login')
-    service = utils.getService(service_id)
+    service = utils.getServiceBySlug(slug)
     if not service:
         flask.abort(404)
     viewer_data = utils.getUser(flask.session['username'])
-    if service['access'] == 'restreint' and viewer_data['role'] != 'admin':
+    if service['access'] == 'restreint' and viewer_data['level'] not in ('avance', 'expert') and viewer_data['role'] != 'admin':
         flask.abort(403)
+
+    if slug == 'planning':
+        utils.executeDuePlannings()
+
+    extra_data = utils.getServiceExtraData(slug)
+    plannings = utils.getPlannings(flask.session['username']) if slug == 'planning' else []
+    all_devices = utils.searchDevices('', '', '') if slug == 'planning' else []
+
     utils.addPoints(flask.session['username'], 0.50)
     utils.incrementActions(flask.session['username'])
-    return flask.render_template('service.html', user=flask.session.get('username'), service=service)
+    user_data = utils.getUser(flask.session['username'])
+    socket.emit('points_update', {
+        'points': float(user_data['points']),
+        'level': user_data['level']
+    }, room=flask.session['username'])
+
+    return flask.render_template(
+        'service.html',
+        user=flask.session.get('username'),
+        service=service,
+        data=extra_data,
+        plannings=plannings,
+        all_devices=all_devices,
+        viewer_data=viewer_data,
+    )
+
+@app.route('/api/service/group-toggle', methods=['POST'])
+def api_group_toggle():
+    if 'username' not in flask.session:
+        return flask.jsonify({'ok': False}), 401
+    u = utils.getUser(flask.session['username'])
+    if not u or (u['level'] not in ('avance', 'expert') and u['role'] != 'admin'):
+        return flask.jsonify({'ok': False}), 403
+    data = flask.request.get_json(silent=True) or {}
+    type_ = data.get('type', '').strip()
+    action = data.get('action', '').strip()
+    if not type_ or action not in ('activer', 'désactiver'):
+        return flask.jsonify({'ok': False, 'error': 'invalid_params'})
+    count = utils.toggleDevicesByType(type_, action)
+    utils.addPoints(flask.session['username'], 0.10)
+    user_data = utils.getUser(flask.session['username'])
+    socket.emit('points_update', {
+        'points': float(user_data['points']),
+        'level': user_data['level']
+    }, room=flask.session['username'])
+    return flask.jsonify({'ok': True, 'count': count, 'action': action, 'new_status': 'actif' if action == 'activer' else 'inactif'})
+
+@app.route('/api/service/planning', methods=['POST'])
+def api_add_planning():
+    if 'username' not in flask.session:
+        return flask.jsonify({'ok': False}), 401
+    u = utils.getUser(flask.session['username'])
+    if not u or (u['level'] not in ('avance', 'expert') and u['role'] != 'admin'):
+        return flask.jsonify({'ok': False}), 403
+    data = flask.request.get_json(silent=True) or {}
+    device_id = data.get('device_id')
+    action = data.get('action', '')
+    scheduled_at = data.get('scheduled_at', '')
+    if not device_id or not action or not scheduled_at:
+        return flask.jsonify({'ok': False, 'error': 'missing_fields'})
+    success, reason = utils.addPlanning(flask.session['username'], device_id, action, scheduled_at)
+    return flask.jsonify({'ok': success, 'reason': reason})
+
+@app.route('/api/service/planning/<int:pid>/delete', methods=['POST'])
+def api_delete_planning(pid):
+    if 'username' not in flask.session:
+        return flask.jsonify({'ok': False}), 401
+    utils.deletePlanning(pid, flask.session['username'])
+    return flask.jsonify({'ok': True})
 
 @app.route('/members')
 def membres():
@@ -636,8 +686,8 @@ def admin_export_users():
         w.writerow([r['username'], r['member_type'], r['level'], r['points'],
                     r['connection_count'], r['actions'] or 0])
     out.seek(0)
-    return flask.Response(out.getvalue(), mimetype='text/csv',
-        headers={'Content-Disposition': 'attachment; filename=users.csv'})
+    return flask.Response(out.getvalue(), mimetype='text/plain',
+        headers={'Content-Disposition': 'attachment; filename=users.txt'})
 
 @app.route('/admin/export/devices')
 def admin_export_devices():
@@ -652,8 +702,8 @@ def admin_export_devices():
         w.writerow([d['id'], d['name'], d['type'], d['brand'] or '',
                     d['room'] or '', d['connectivity'] or '', d['battery'] or '', d['status']])
     out.seek(0)
-    return flask.Response(out.getvalue(), mimetype='text/csv',
-        headers={'Content-Disposition': 'attachment; filename=devices.csv'})
+    return flask.Response(out.getvalue(), mimetype='text/plain',
+        headers={'Content-Disposition': 'attachment; filename=devices.txt'})
 
 @app.route('/admin/settings', methods=['POST'])
 def admin_save_settings():
@@ -688,6 +738,7 @@ def gestion_reports():
 
 with app.app_context():
     utils.initDB()
+    utils.seedServices()
     existing = utils.getUser('testuser')
     if existing:
         utils.deleteUser('testuser')
