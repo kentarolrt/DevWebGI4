@@ -1,4 +1,7 @@
 import os
+import io
+import csv
+import datetime
 import flask
 import utils
 import flask_socketio
@@ -666,7 +669,6 @@ def admin_reset_password(username):
 def admin_backup():
     if not _is_admin():
         flask.abort(403)
-    import os
     return flask.send_file(os.path.abspath(utils.BASE), as_attachment=True,
                            download_name='osmhome_backup.db',
                            mimetype='application/octet-stream')
@@ -681,33 +683,65 @@ def admin_integrity():
 def admin_export_users():
     if not _is_admin():
         flask.abort(403)
-    import csv, io
     rows = utils.getAdminStats()
+    now = datetime.datetime.now().strftime('%d/%m/%Y à %H:%M')
     out = io.StringIO()
-    w = csv.writer(out)
-    w.writerow(['username', 'member_type', 'level', 'points', 'connections', 'actions'])
-    for r in rows:
-        w.writerow([r['username'], r['member_type'], r['level'], r['points'],
-                    r['connection_count'], r['actions'] or 0])
+    SEP = '=' * 60
+    out.write(f'RAPPORT UTILISATEURS — OsmHome\n')
+    out.write(f'Généré le {now}\n')
+    out.write(f'{SEP}\n\n')
+    out.write(f'Nombre total d\'utilisateurs : {len(rows)}\n\n')
+    out.write(f'{SEP}\n\n')
+    for i, r in enumerate(rows, 1):
+        level_label = _LEVEL_LABELS.get(r['level'], r['level'])
+        out.write(f'Utilisateur #{i}\n')
+        out.write(f'  Pseudo         : {r["username"]}\n')
+        out.write(f'  Type de membre : {r["member_type"] or "—"}\n')
+        out.write(f'  Niveau         : {level_label}\n')
+        out.write(f'  Points         : {r["points"]:.2f}\n')
+        out.write(f'  Connexions     : {r["connection_count"]}\n')
+        out.write(f'  Actions        : {r["actions"] or 0}\n')
+        out.write(f'\n')
+    out.write(f'{SEP}\n')
+    out.write(f'Fin du rapport\n')
     out.seek(0)
-    return flask.Response(out.getvalue(), mimetype='text/plain',
-        headers={'Content-Disposition': 'attachment; filename=users.txt'})
+    return flask.Response(out.getvalue(), mimetype='text/plain; charset=utf-8',
+        headers={'Content-Disposition': 'attachment; filename=rapport_utilisateurs.txt'})
 
 @app.route('/admin/export/devices')
 def admin_export_devices():
     if not _is_admin():
         flask.abort(403)
-    import csv, io
     devices = utils.getDevicesForGestion()
+    now = datetime.datetime.now().strftime('%d/%m/%Y à %H:%M')
+    total   = len(devices)
+    active  = sum(1 for d in devices if d['status'] == 'actif')
+    SEP = '=' * 60
     out = io.StringIO()
-    w = csv.writer(out)
-    w.writerow(['id', 'name', 'type', 'brand', 'room', 'connectivity', 'battery', 'status'])
-    for d in devices:
-        w.writerow([d['id'], d['name'], d['type'], d['brand'] or '',
-                    d['room'] or '', d['connectivity'] or '', d['battery'] or '', d['status']])
+    out.write(f'RAPPORT OBJETS CONNECTÉS — OsmHome\n')
+    out.write(f'Généré le {now}\n')
+    out.write(f'{SEP}\n\n')
+    out.write(f'Total appareils : {total}  |  Actifs : {active}  |  Inactifs : {total - active}\n\n')
+    out.write(f'{SEP}\n\n')
+    for i, d in enumerate(devices, 1):
+        out.write(f'Objet #{i} — {d["name"]}\n')
+        out.write(f'  ID             : {d["id"]}\n')
+        out.write(f'  Type           : {d["type"] or "—"}\n')
+        out.write(f'  Marque         : {d["brand"] or "—"}\n')
+        out.write(f'  Pièce          : {d["room"] or "—"}\n')
+        out.write(f'  Connectivité   : {d["connectivity"] or "—"}\n')
+        out.write(f'  Batterie       : {str(d["battery"]) + " %" if d["battery"] is not None else "—"}\n')
+        out.write(f'  État           : {d["status"]}\n')
+        if d["description"]:
+            out.write(f'  Description    : {d["description"]}\n')
+        if d["deletion_requested"]:
+            out.write(f'  ⚠ Suppression demandée\n')
+        out.write(f'\n')
+    out.write(f'{SEP}\n')
+    out.write(f'Fin du rapport\n')
     out.seek(0)
-    return flask.Response(out.getvalue(), mimetype='text/plain',
-        headers={'Content-Disposition': 'attachment; filename=devices.txt'})
+    return flask.Response(out.getvalue(), mimetype='text/plain; charset=utf-8',
+        headers={'Content-Disposition': 'attachment; filename=rapport_objets.txt'})
 
 @app.route('/admin/settings', methods=['POST'])
 def admin_save_settings():
@@ -749,6 +783,14 @@ with app.app_context():
     _, token = utils.createUser('testuser', 'test123', 'Test', 'User',
                                 'testuser@osmhome.fr', '20', 'male', '2004-01-01', 'fils')
     utils.verifyEmail(token)
+
+def _battery_drain_loop():
+    while True:
+        socket.sleep(60)
+        with app.app_context():
+            utils.drainBatteries()
+
+socket.start_background_task(_battery_drain_loop)
 
 if __name__ == '__main__':
     socket.run(app, port=5500)

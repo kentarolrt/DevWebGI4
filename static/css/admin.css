@@ -116,7 +116,15 @@
     transition: border-color 0.15s, background 0.15s;
 }
 .admin-radio:hover { background: var(--bg); border-color: var(--primary); }
-.admin-radio input[type="radio"] { margin-top: 0.2rem; accent-color: var(--primary); flex-shrink: 0; }
+.admin-radio input[type="radio"] {
+    width: auto;
+    padding: 0;
+    margin-top: 0.15rem;
+    accent-color: var(--primary);
+    flex-shrink: 0;
+    box-shadow: none;
+    border: none;
+}
 .admin-radio span { display: flex; flex-direction: column; gap: 0.15rem; }
 .admin-radio strong { font-size: 0.9rem; color: var(--dark); }
 .admin-radio em     { font-size: 0.82rem; color: var(--muted); font-style: normal; }

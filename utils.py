@@ -449,6 +449,16 @@ def getServiceExtraData(slug: str) -> dict:
 
     return {}
 
+def drainBatteries() -> None:
+    db = openDB()
+    db.execute(
+        "UPDATE devices SET battery = battery - 1 WHERE battery > 0 AND status = 'actif' AND battery IS NOT NULL"
+    )
+    db.execute(
+        "UPDATE devices SET status = 'inactif' WHERE battery IS NOT NULL AND battery <= 0 AND status = 'actif'"
+    )
+    db.commit()
+
 def toggleDevicesByType(type_: str, action: str) -> int:
     db = openDB()
     new_status = 'actif' if action == 'activer' else 'inactif'
