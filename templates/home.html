@@ -5,99 +5,22 @@
 
 {% block content %}
 
-<!-- ── HERO ───────────────────────────────────────────────────── -->
+<!-- ── BANDEAU IMAGE ───────────────────────────────────────────── -->
 <section class="home-hero">
-    <div class="home-hero-inner">
-
-        <div class="home-hero-text">
-            <p class="home-hero-eyebrow">OsmHome</p>
-            <h1 class="home-hero-title">
-                La maison<br>
-                qui vous<br>
-                <span class="home-hero-accent">ressemble</span>
-            </h1>
-            <p class="home-hero-sub">
-                Gérez vos appareils, surveillez votre consommation
-                et sécurisez votre foyer depuis une seule plateforme.
-            </p>
-            <div class="home-hero-actions">
-                {% if user %}
-                    <a href="/dashboard" class="btn-hero-fill">Mon tableau de bord</a>
-                    <a href="/search" class="btn-hero-ghost">Explorer →</a>
-                {% else %}
-                    <a href="/signup" class="btn-hero-fill">Créer mon espace</a>
-                    <a href="/login" class="btn-hero-ghost">Se connecter →</a>
-                {% endif %}
-            </div>
+    <div class="home-banner">
+        <picture>
+            <source srcset="{{ url_for('static', filename='images/maison_domotique.webp') }}" type="image/webp">
+            <img src="{{ url_for('static', filename='images/maison_domotique.jpg') }}" alt="Maison connectée" class="home-banner-img">
+        </picture>
+        <div class="home-banner-overlay">
+            <h1 class="home-banner-title">Bienvenue sur <span class="home-banner-accent">OsmHome</span></h1>
+            <p class="home-banner-sub">Gérez vos appareils, surveillez votre consommation<br>et sécurisez votre foyer depuis une seule plateforme.</p>
         </div>
-
-        <div class="home-hero-visual">
-            <div class="home-preview-card">
-                <p class="home-preview-label">Tableau de bord</p>
-
-                <div class="home-preview-item">
-                    <span class="home-preview-icon home-preview-icon--red"><i class="fa-solid fa-temperature-half"></i></span>
-                    <span class="home-preview-name">Thermostat</span>
-                    <span class="home-preview-status home-preview-status--on">21°C</span>
-                </div>
-
-                <div class="home-preview-item">
-                    <span class="home-preview-icon home-preview-icon--yellow"><i class="fa-solid fa-lightbulb"></i></span>
-                    <span class="home-preview-name">Lumière salon</span>
-                    <span class="home-preview-status home-preview-status--on">ON</span>
-                </div>
-
-                <div class="home-preview-item">
-                    <span class="home-preview-icon home-preview-icon--blue"><i class="fa-solid fa-camera"></i></span>
-                    <span class="home-preview-name">Caméra entrée</span>
-                    <span class="home-preview-status home-preview-status--on">LIVE</span>
-                </div>
-
-                <div class="home-preview-item">
-                    <span class="home-preview-icon home-preview-icon--gray"><i class="fa-solid fa-shirt"></i></span>
-                    <span class="home-preview-name">Lave-linge</span>
-                    <span class="home-preview-status home-preview-status--off">OFF</span>
-                </div>
-
-                <div class="home-preview-bar">
-                    <span>Économies ce mois</span>
-                    <span class="home-preview-bar-val">32%</span>
-                    <div class="home-preview-track"><div class="home-preview-fill"></div></div>
-                </div>
-            </div>
-        </div>
-
     </div>
 </section>
 
 
-<!-- ── EDITORIAL CARDS ───────────────────────────────────────── -->
-<section class="home-editorial">
-
-    <div class="home-ed-card home-ed-card--forest">
-        <div class="home-ed-body">
-            <p class="home-ed-kicker">Confort</p>
-            <h2>Contrôle<br>intelligent</h2>
-            <p>Pilotez tous vos appareils depuis un seul endroit, où que vous soyez.</p>
-            <a href="/search" class="home-ed-cta">Découvrir les appareils →</a>
-        </div>
-        <div class="home-ed-deco"><i class="fa-solid fa-house-signal"></i></div>
-    </div>
-
-    <div class="home-ed-card home-ed-card--cream">
-        <div class="home-ed-body">
-            <p class="home-ed-kicker">Énergie</p>
-            <h2>Économisez<br>jusqu'à 32%</h2>
-            <p>Suivez votre consommation en temps réel et réduisez votre impact.</p>
-            <a href="/signup" class="home-ed-cta">Commencer →</a>
-        </div>
-        <div class="home-ed-deco"><i class="fa-solid fa-bolt"></i></div>
-    </div>
-
-</section>
-
-
-<!-- ── FEATURES ──────────────────────────────────────────────── -->
+<!-- ── FONCTIONNALITÉS ────────────────────────────────────────── -->
 <section class="home-features">
     <div class="home-features-inner">
 
@@ -119,29 +42,6 @@
             <p>Surveillez votre maison en temps réel depuis n'importe où dans le monde.</p>
         </div>
 
-    </div>
-</section>
-
-
-<!-- ── STATS ─────────────────────────────────────────────────── -->
-<section class="home-stats">
-    <div class="home-stats-inner">
-        <div class="home-stat">
-            <span class="home-stat-num">24</span>
-            <span class="home-stat-label">Objets connectés</span>
-        </div>
-        <div class="home-stat">
-            <span class="home-stat-num">4</span>
-            <span class="home-stat-label">Rôles familiaux</span>
-        </div>
-        <div class="home-stat">
-            <span class="home-stat-num">-32%</span>
-            <span class="home-stat-label">Consommation</span>
-        </div>
-        <div class="home-stat">
-            <span class="home-stat-num">99%</span>
-            <span class="home-stat-label">Disponibilité</span>
-        </div>
     </div>
 </section>
 

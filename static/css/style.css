@@ -1,6 +1,6 @@
 /* ── Variables ──────────────────────────────────────────────── */
 :root {
-  --bg: #f4f7fa;
+  --bg: #ffffff;
   --surface: #ffffff;
   --dark: #1e2330;
   --dark-2: #1c2131;
@@ -135,24 +135,24 @@ header {
   background: var(--surface);
   padding: 0 2rem;
   height: 62px;
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  display: flex;
   align-items: center;
+  gap: 0.25rem;
   position: sticky;
   top: 0;
   z-index: 100;
+  border-bottom: 1px solid var(--border);
 }
 .header-nav {
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: 0.25rem;
 }
 .header-actions {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
   gap: 0.25rem;
+  margin-left: auto;
 }
 .logo { font-size: 1.4rem; font-weight: 700; color: var(--primary); display: flex; align-items: center; }
 .logo-img { height: 36px; object-fit: contain; }
@@ -226,9 +226,9 @@ footer span { color: #7EC4CF; }
 
 /* ── Responsive ─────────────────────────────────────────────── */
 @media (max-width: 768px) {
-  header { height: auto; padding: 0.6rem 1rem; grid-template-columns: auto 1fr; grid-template-rows: auto auto; gap: 0.5rem; }
-  .header-nav { grid-column: 1 / -1; justify-content: flex-start; flex-wrap: wrap; order: 3; }
-  .header-actions { grid-column: 2; justify-content: flex-end; }
+  header { height: auto; padding: 0.6rem 1rem; flex-wrap: wrap; gap: 0.4rem; }
+  .header-nav { order: 3; flex-basis: 100%; flex-wrap: wrap; }
+  .header-actions { margin-left: auto; }
   .btn-signup, .btn-profile, .btn-login, .btn-logout { width: auto; padding: 0.4rem 0.75rem; font-size: 0.82rem; }
   .form-row { grid-template-columns: 1fr; }
 }
