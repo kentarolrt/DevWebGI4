@@ -119,15 +119,26 @@ def signup():
 
         if success:
             token = reason
-            smtp_configured = bool(app.config.get('MAIL_USERNAME'))
-            if smtp_configured:
-                send_verification_email(email, username, token)
+            reg_mode = utils.getSetting('registration_mode', 'email')
+            if reg_mode == 'libre':
+                utils.verifyEmail(token)
+                flask.session['username'] = username
+                utils.recordConnection(username)
+                return flask.redirect('/dashboard')
+            elif reg_mode == 'approval':
                 flask.session['pending_verification'] = username
                 return flask.redirect('/verify-pending')
             else:
-                utils.verifyEmail(token)
-                flask.session['username'] = username
-                return flask.redirect('/dashboard')
+                smtp_configured = bool(app.config.get('MAIL_USERNAME'))
+                if smtp_configured:
+                    send_verification_email(email, username, token)
+                else:
+                    utils.verifyEmail(token)
+                    flask.session['username'] = username
+                    utils.recordConnection(username)
+                    return flask.redirect('/dashboard')
+                flask.session['pending_verification'] = username
+                return flask.redirect('/verify-pending')
         else:
             return flask.render_template('signup.html', user=None,
                 error=SIGNUP_ERRORS.get(reason, 'Erreur lors de la création du compte.'),
@@ -450,15 +461,31 @@ def on_join():
     if 'username' in flask.session:
         flask_socketio.join_room(flask.session['username'])
 
+def _is_admin() -> bool:
+    if 'username' not in flask.session:
+        return False
+    u = utils.getUser(flask.session['username'])
+    return bool(u and u['role'] == 'admin')
+
 @app.route('/admin')
 def admin():
-    if 'username' not in flask.session:
-        return flask.redirect('/login')
-    viewer_data = utils.getUser(flask.session['username'])
-    if not viewer_data or viewer_data['role'] != 'admin':
+    if not _is_admin():
         flask.abort(403)
-    stats = utils.getAdminStats()
-    return flask.render_template('admin.html', user=flask.session.get('username'), stats=stats)
+    stats        = utils.getAdminStats()
+    pending_users = utils.getPendingUsers()
+    reg_mode     = utils.getSetting('registration_mode', 'email')
+    full_stats   = utils.getAdminFullStats()
+    active_tab   = flask.request.args.get('tab', 'utilisateurs')
+    saved        = flask.request.args.get('saved') == '1'
+    return flask.render_template('admin.html',
+        user=flask.session.get('username'),
+        stats=stats,
+        pending_users=pending_users,
+        reg_mode=reg_mode,
+        full_stats=full_stats,
+        active_tab=active_tab,
+        saved=saved,
+    )
 
 @app.context_processor
 def inject_types():
@@ -482,6 +509,14 @@ def _require_gestion():
         flask.abort(403)
     return None
 
+def _require_expert():
+    if 'username' not in flask.session:
+        return flask.redirect('/login')
+    u = utils.getUser(flask.session['username'])
+    if not u or u['level'] != 'expert':
+        flask.abort(403)
+    return None
+
 @app.route('/gestion')
 def gestion():
     r = _require_gestion()
@@ -493,7 +528,7 @@ def gestion():
 
 @app.route('/gestion/device/add', methods=['GET', 'POST'])
 def gestion_device_add():
-    r = _require_gestion()
+    r = _require_expert()
     if r: return r
     if flask.request.method == 'POST':
         f = flask.request.form
@@ -513,7 +548,7 @@ def gestion_device_add():
 
 @app.route('/gestion/device/<int:device_id>/edit', methods=['GET', 'POST'])
 def gestion_device_edit(device_id):
-    r = _require_gestion()
+    r = _require_expert()
     if r: return r
     device = utils.getDevice(device_id)
     if not device:
@@ -564,15 +599,101 @@ def admin_device_delete(device_id):
     utils.adminDeleteDevice(device_id)
     return flask.redirect('/gestion')
 
+@app.route('/admin/user/<username>/reset-password', methods=['POST'])
+def admin_reset_password(username):
+    if not _is_admin():
+        return flask.jsonify({'ok': False}), 403
+    data = flask.request.get_json(silent=True) or {}
+    new_pw = data.get('password', '').strip()
+    success, reason = utils.adminResetPassword(username, new_pw)
+    return flask.jsonify({'ok': success, 'reason': reason})
+
+@app.route('/admin/backup')
+def admin_backup():
+    if not _is_admin():
+        flask.abort(403)
+    import os
+    return flask.send_file(os.path.abspath(utils.BASE), as_attachment=True,
+                           download_name='osmhome_backup.db',
+                           mimetype='application/octet-stream')
+
+@app.route('/admin/integrity')
+def admin_integrity():
+    if not _is_admin():
+        flask.abort(403)
+    return flask.jsonify(utils.checkIntegrity())
+
+@app.route('/admin/export/users')
+def admin_export_users():
+    if not _is_admin():
+        flask.abort(403)
+    import csv, io
+    rows = utils.getAdminStats()
+    out = io.StringIO()
+    w = csv.writer(out)
+    w.writerow(['username', 'member_type', 'level', 'points', 'connections', 'actions'])
+    for r in rows:
+        w.writerow([r['username'], r['member_type'], r['level'], r['points'],
+                    r['connection_count'], r['actions'] or 0])
+    out.seek(0)
+    return flask.Response(out.getvalue(), mimetype='text/csv',
+        headers={'Content-Disposition': 'attachment; filename=users.csv'})
+
+@app.route('/admin/export/devices')
+def admin_export_devices():
+    if not _is_admin():
+        flask.abort(403)
+    import csv, io
+    devices = utils.getDevicesForGestion()
+    out = io.StringIO()
+    w = csv.writer(out)
+    w.writerow(['id', 'name', 'type', 'brand', 'room', 'connectivity', 'battery', 'status'])
+    for d in devices:
+        w.writerow([d['id'], d['name'], d['type'], d['brand'] or '',
+                    d['room'] or '', d['connectivity'] or '', d['battery'] or '', d['status']])
+    out.seek(0)
+    return flask.Response(out.getvalue(), mimetype='text/csv',
+        headers={'Content-Disposition': 'attachment; filename=devices.csv'})
+
+@app.route('/admin/settings', methods=['POST'])
+def admin_save_settings():
+    if not _is_admin():
+        flask.abort(403)
+    reg_mode = flask.request.form.get('registration_mode', 'email')
+    if reg_mode not in ('libre', 'email', 'approval'):
+        reg_mode = 'email'
+    utils.setSetting('registration_mode', reg_mode)
+    return flask.redirect('/admin?tab=personnalisation&saved=1')
+
+@app.route('/admin/user/<username>/approve', methods=['POST'])
+def admin_approve_user(username):
+    if not _is_admin():
+        flask.abort(403)
+    utils.approveUser(username)
+    return flask.redirect('/admin?tab=personnalisation')
+
+@app.route('/admin/user/<username>/deny', methods=['POST'])
+def admin_deny_user(username):
+    if not _is_admin():
+        flask.abort(403)
+    utils.denyUser(username)
+    return flask.redirect('/admin?tab=personnalisation')
+
 @app.route('/gestion/reports')
 def gestion_reports():
-    r = _require_gestion()
+    r = _require_expert()
     if r: return r
     stats = utils.getGestionStats()
     return flask.render_template('gestion_reports.html', user=flask.session.get('username'), stats=stats)
 
 with app.app_context():
     utils.initDB()
+    existing = utils.getUser('testuser')
+    if existing:
+        utils.deleteUser('testuser')
+    _, token = utils.createUser('testuser', 'test123', 'Test', 'User',
+                                'testuser@osmhome.fr', '20', 'male', '2004-01-01', 'fils')
+    utils.verifyEmail(token)
 
 if __name__ == '__main__':
     socket.run(app, port=5500)

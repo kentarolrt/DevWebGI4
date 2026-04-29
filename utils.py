@@ -70,6 +70,13 @@ def initDB():
             category TEXT,
             access TEXT DEFAULT 'libre'
         );
+
+        CREATE TABLE IF NOT EXISTS settings (
+            key TEXT PRIMARY KEY,
+            value TEXT NOT NULL
+        );
+
+        INSERT OR IGNORE INTO settings (key, value) VALUES ('registration_mode', 'email');
     ''')
 
     db.commit()
@@ -227,33 +234,31 @@ def getTypes() -> list:
     rows = db.execute('SELECT DISTINCT type FROM devices ORDER BY type').fetchall()
     return [row['type'] for row in rows]
 
-def _computeLevel(points: float) -> str:
-    if points < 5:
-        return 'debutant'
-    elif points < 15:
-        return 'intermediaire'
-    elif points < 30:
-        return 'avance'
-    else:
-        return 'expert'
-
 def addPoints(username: str, amount: float) -> None:
     db = openDB()
     db.execute('UPDATE users SET points = points + ? WHERE username = ?', (amount, username))
     db.commit()
+
+_LEVEL_THRESHOLDS = {'debutant': 0, 'intermediaire': 1, 'avance': 3, 'expert': 5}
 
 def upgradeLevel(username: str) -> tuple[bool, str]:
     db = openDB()
     user = db.execute('SELECT points, level FROM users WHERE username = ?', (username,)).fetchone()
     if not user:
         return False, 'user_not_found'
-    new_level = _computeLevel(user['points'])
     levels = ['debutant', 'intermediaire', 'avance', 'expert']
-    if levels.index(new_level) <= levels.index(user['level']):
+    current_idx = levels.index(user['level'])
+    if current_idx >= len(levels) - 1:
+        return False, 'already_max'
+    next_level = levels[current_idx + 1]
+    if user['points'] < _LEVEL_THRESHOLDS[next_level]:
         return False, 'not_enough_points'
-    db.execute('UPDATE users SET level = ? WHERE username = ?', (new_level, username))
+    if next_level == 'expert':
+        db.execute('UPDATE users SET level = ?, role = ? WHERE username = ?', (next_level, 'admin', username))
+    else:
+        db.execute('UPDATE users SET level = ? WHERE username = ?', (next_level, username))
     db.commit()
-    return True, new_level
+    return True, next_level
 
 def incrementActions(username: str) -> None:
     db = openDB()
@@ -411,3 +416,82 @@ def deleteUser(username: str) -> tuple[bool, str]:
     db.execute('DELETE FROM users WHERE username = ?', (username,))
     db.commit()
     return True, 'ok'
+
+def getSetting(key: str, default: str = '') -> str:
+    db = openDB()
+    row = db.execute('SELECT value FROM settings WHERE key = ?', (key,)).fetchone()
+    return row['value'] if row else default
+
+def setSetting(key: str, value: str) -> None:
+    db = openDB()
+    db.execute('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)', (key, value))
+    db.commit()
+
+def adminResetPassword(username: str, new_password: str) -> tuple[bool, str]:
+    if len(new_password) < 6:
+        return False, 'too_short'
+    db = openDB()
+    user = db.execute('SELECT id FROM users WHERE username = ?', (username,)).fetchone()
+    if not user:
+        return False, 'not_found'
+    db.execute('UPDATE users SET password = ? WHERE username = ?',
+               (generate_password_hash(new_password), username))
+    db.commit()
+    return True, 'ok'
+
+def checkIntegrity() -> dict:
+    db = openDB()
+    integrity = db.execute('PRAGMA integrity_check').fetchall()
+    fk_check  = db.execute('PRAGMA foreign_key_check').fetchall()
+    ok = all(row[0] == 'ok' for row in integrity) and len(fk_check) == 0
+    return {
+        'integrity': [row[0] for row in integrity],
+        'fk_violations': len(fk_check),
+        'ok': ok,
+    }
+
+def getPendingUsers() -> list:
+    db = openDB()
+    return db.execute(
+        'SELECT username, email, lastname, firstname, member_type FROM users WHERE email_verified = 0 ORDER BY id DESC'
+    ).fetchall()
+
+def approveUser(username: str) -> bool:
+    db = openDB()
+    db.execute('UPDATE users SET email_verified = 1, verification_token = NULL WHERE username = ?', (username,))
+    db.commit()
+    return True
+
+def denyUser(username: str) -> bool:
+    db = openDB()
+    user = db.execute('SELECT id FROM users WHERE username = ?', (username,)).fetchone()
+    if not user:
+        return False
+    db.execute('DELETE FROM connection_history WHERE user_id = ?', (user['id'],))
+    db.execute('DELETE FROM users WHERE username = ?', (username,))
+    db.commit()
+    return True
+
+def getAdminFullStats() -> dict:
+    db = openDB()
+    top_users = db.execute('''
+        SELECT u.username, COUNT(c.id) as connections, u.level, u.points
+        FROM users u LEFT JOIN connection_history c ON c.user_id = u.id
+        GROUP BY u.id ORDER BY connections DESC LIMIT 5
+    ''').fetchall()
+    total_connections = db.execute('SELECT COUNT(*) as cnt FROM connection_history').fetchone()['cnt']
+    total_users = db.execute('SELECT COUNT(*) as cnt FROM users').fetchone()['cnt']
+    services_by_cat = db.execute(
+        'SELECT category, COUNT(*) as cnt FROM services GROUP BY category ORDER BY cnt DESC'
+    ).fetchall()
+    device_status = db.execute(
+        'SELECT status, COUNT(*) as cnt FROM devices GROUP BY status'
+    ).fetchall()
+    return {
+        'top_users': [dict(r) for r in top_users],
+        'total_connections': total_connections,
+        'total_users': total_users,
+        'avg_connections': round(total_connections / total_users, 1) if total_users else 0,
+        'services_by_cat': [dict(r) for r in services_by_cat],
+        'device_status': {r['status']: r['cnt'] for r in device_status},
+    }

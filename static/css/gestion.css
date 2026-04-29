@@ -48,6 +48,13 @@
 .btn-action--confirm-del    { color: var(--accent-2); border-color: rgba(52,168,83,0.3); }
 .btn-action--confirm-del:hover  { background: rgba(52,168,83,0.1); }
 
+/* Locked features */
+.btn-locked { opacity: 0.45; cursor: not-allowed; pointer-events: none; filter: grayscale(0.4); }
+.btn-action--locked { opacity: 0.3; cursor: not-allowed; }
+
+/* Level banner */
+.gestion-level-banner { display: flex; align-items: center; gap: 0.7rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.6rem 1rem; margin-bottom: 1.25rem; font-size: 0.86rem; color: var(--muted); }
+
 /* ── Gestion form ────────────────────────────────────────────── */
 .gestion-form-page { max-width: 720px; margin: 2rem auto 4rem; padding: 0 1rem; }
 .gestion-form-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow); overflow: hidden; }

@@ -12,11 +12,8 @@ function refreshPoints() {
             document.querySelectorAll('.points-live').forEach(el => {
                 el.textContent = data.points.toFixed(2);
             });
-            if (data.level) {
-                const label = LEVEL_LABELS[data.level] || data.level;
-                document.querySelectorAll('.level-live').forEach(el => {
-                    el.textContent = label;
-                });
+            if (typeof updateDashboardLevel === 'function') {
+                updateDashboardLevel(data.level, data.points);
             }
         });
 }

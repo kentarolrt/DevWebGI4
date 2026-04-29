@@ -6,9 +6,9 @@ const LEVEL_LABELS = {
 };
 
 const LEVEL_NEXT = {
-    debutant:      { next_label: 'Intermédiaire', next_pts: 5,  min: 0  },
-    intermediaire: { next_label: 'Avancé',        next_pts: 15, min: 5  },
-    avance:        { next_label: 'Expert',        next_pts: 30, min: 15 },
+    debutant:      { next_label: 'Intermédiaire', next_pts: 1, min: 0 },
+    intermediaire: { next_label: 'Avancé',        next_pts: 3, min: 1 },
+    avance:        { next_label: 'Expert',         next_pts: 5, min: 3 },
     expert:        null
 };
 
@@ -62,7 +62,7 @@ function bindLevelUp(btn) {
             .then(data => {
                 if (data.ok) {
                     btn.innerHTML = '<i class="fa-solid fa-check"></i> Niveau atteint !';
-                    setTimeout(() => updateDashboardLevel(data.level, data.points), 900);
+                    setTimeout(() => location.reload(), 1200);
                 } else {
                     btn.disabled = false;
                 }

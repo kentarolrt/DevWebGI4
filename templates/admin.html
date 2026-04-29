@@ -3,48 +3,453 @@
 {% block title %}Administration - OsmHome{% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/members.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/gestion.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
 {% endblock %}
 
 {% block content %}
 <div class="admin-page">
 
-    <div class="members-header">
-        <h2><i class="fa-solid fa-chart-bar"></i> Tableau de bord admin</h2>
-        <p>{{ stats | length }} utilisateur{{ 's' if stats | length > 1 }}</p>
+    <div class="admin-hero">
+        <div>
+            <h2><i class="fa-solid fa-shield-halved"></i> Administration</h2>
+            <p>Panneau d'administration de la plateforme OsmHome</p>
+        </div>
     </div>
 
-    <div class="admin-table-wrap">
-        <table class="admin-table">
-            <thead>
-                <tr>
-                    <th>Utilisateur</th>
-                    <th>Rôle</th>
-                    <th>Niveau</th>
-                    <th>Points</th>
-                    <th><i class="fa-solid fa-right-to-bracket"></i> Accès</th>
-                    <th><i class="fa-solid fa-bolt"></i> Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for s in stats %}
-                <tr>
-                    <td>
-                        <a href="/member/{{ s['username'] }}" class="admin-user-link">
-                            <span class="member-avatar small">{{ s['username'][0] | upper }}</span>
-                            {{ s['username'] }}
-                        </a>
-                    </td>
-                    <td>{{ s['member_type'] or '—' }}</td>
-                    <td><span class="level-badge level-{{ s['level'] }}">{{ s['level'] | level_label }}</span></td>
-                    <td>{{ "%.2f"|format(s['points']) }}</td>
-                    <td class="stat-num">{{ s['connection_count'] }}</td>
-                    <td class="stat-num">{{ s['actions'] or 0 }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <div class="admin-tabs">
+        <button class="admin-tab {% if active_tab == 'utilisateurs' %}active{% endif %}" data-tab="utilisateurs">
+            <i class="fa-solid fa-users"></i> Utilisateurs
+        </button>
+        <button class="admin-tab {% if active_tab == 'securite' %}active{% endif %}" data-tab="securite">
+            <i class="fa-solid fa-shield"></i> Sécurité &amp; Maintenance
+        </button>
+        <button class="admin-tab {% if active_tab == 'personnalisation' %}active{% endif %}" data-tab="personnalisation">
+            <i class="fa-solid fa-sliders"></i> Personnalisation
+            {% if pending_users %}<span class="admin-tab-badge">{{ pending_users | length }}</span>{% endif %}
+        </button>
+        <button class="admin-tab {% if active_tab == 'rapports' %}active{% endif %}" data-tab="rapports">
+            <i class="fa-solid fa-chart-line"></i> Rapports Avancés
+        </button>
+    </div>
+
+    <!-- ── Tab : Utilisateurs ───────────────────────────────────── -->
+    <div class="admin-tab-content {% if active_tab == 'utilisateurs' %}active{% endif %}" id="tab-utilisateurs">
+        <div class="admin-section-header">
+            <h3>Gestion des utilisateurs</h3>
+            <p>{{ stats | length }} utilisateur{{ 's' if stats | length > 1 }}</p>
+        </div>
+        <div class="admin-table-wrap">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Utilisateur</th>
+                        <th>Rôle familial</th>
+                        <th>Niveau</th>
+                        <th>Points</th>
+                        <th><i class="fa-solid fa-right-to-bracket"></i> Connexions</th>
+                        <th><i class="fa-solid fa-bolt"></i> Actions</th>
+                        <th>Gestion</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in stats %}
+                    <tr>
+                        <td>
+                            <a href="/member/{{ s['username'] }}" class="admin-user-link">
+                                <span class="member-avatar small">{{ s['username'][0] | upper }}</span>
+                                {{ s['username'] }}
+                            </a>
+                        </td>
+                        <td class="text-muted">{{ s['member_type'] or '—' }}</td>
+                        <td><span class="level-badge level-{{ s['level'] }}">{{ s['level'] | level_label }}</span></td>
+                        <td>{{ "%.2f"|format(s['points']) }}</td>
+                        <td class="stat-num">{{ s['connection_count'] }}</td>
+                        <td class="stat-num">{{ s['actions'] or 0 }}</td>
+                        <td class="admin-actions">
+                            <button class="btn-action btn-action--edit"
+                                    onclick="openResetModal('{{ s['username'] }}')"
+                                    title="Réinitialiser le mot de passe">
+                                <i class="fa-solid fa-key"></i>
+                            </button>
+                            {% if s['username'] != user %}
+                            <form action="/admin/delete/{{ s.username }}" method="post" style="display:inline"
+                                  onsubmit="return confirm('Supprimer définitivement « {{ s.username }} » ?')">
+                                <button class="btn-action btn-action--delete" title="Supprimer l'utilisateur">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ── Tab : Sécurité & Maintenance ────────────────────────── -->
+    <div class="admin-tab-content {% if active_tab == 'securite' %}active{% endif %}" id="tab-securite">
+        <div class="admin-section-header">
+            <h3>Sécurité &amp; Maintenance</h3>
+            <p>Outils de maintenance et de contrôle de la plateforme</p>
+        </div>
+
+        <div class="admin-cards">
+            <div class="admin-card">
+                <div class="admin-card-icon"><i class="fa-solid fa-database"></i></div>
+                <h4>Sauvegarde de la base de données</h4>
+                <p>Téléchargez une copie complète de la base de données SQLite pour une conservation externe.</p>
+                <a href="/admin/backup" class="btn btn-primary btn-sm">
+                    <i class="fa-solid fa-download"></i> Télécharger la sauvegarde
+                </a>
+            </div>
+
+            <div class="admin-card">
+                <div class="admin-card-icon"><i class="fa-solid fa-circle-check"></i></div>
+                <h4>Vérification de l'intégrité</h4>
+                <p>Lance un diagnostic de cohérence des données et vérifie les contraintes de clés étrangères.</p>
+                <button class="btn btn-outline btn-sm" id="btn-integrity" onclick="checkIntegrity()">
+                    <i class="fa-solid fa-magnifying-glass"></i> Lancer le diagnostic
+                </button>
+                <div id="integrity-result" class="integrity-result" style="display:none"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Tab : Personnalisation ───────────────────────────────── -->
+    <div class="admin-tab-content {% if active_tab == 'personnalisation' %}active{% endif %}" id="tab-personnalisation">
+        <div class="admin-section-header">
+            <h3>Personnalisation de la plateforme</h3>
+            <p>Configuration des règles d'accès et du comportement de la plateforme</p>
+        </div>
+
+        {% if saved %}
+        <div class="alert alert-success" style="margin-bottom:1.5rem">
+            <i class="fa-solid fa-circle-check"></i> Paramètres enregistrés avec succès.
+        </div>
+        {% endif %}
+
+        <div class="admin-cards">
+            <div class="admin-card admin-card--wide">
+                <div class="admin-card-icon"><i class="fa-solid fa-user-check"></i></div>
+                <h4>Règles de validation des inscriptions</h4>
+                <p>Choisissez le mode de validation appliqué à chaque nouvelle inscription.</p>
+                <form action="/admin/settings" method="post" class="admin-settings-form">
+                    <label class="admin-radio">
+                        <input type="radio" name="registration_mode" value="libre"
+                               {% if reg_mode == 'libre' %}checked{% endif %}>
+                        <span>
+                            <strong>Libre</strong>
+                            <em>Accès immédiat sans vérification</em>
+                        </span>
+                    </label>
+                    <label class="admin-radio">
+                        <input type="radio" name="registration_mode" value="email"
+                               {% if reg_mode == 'email' %}checked{% endif %}>
+                        <span>
+                            <strong>Email</strong>
+                            <em>Vérification par email requise avant l'accès</em>
+                        </span>
+                    </label>
+                    <label class="admin-radio">
+                        <input type="radio" name="registration_mode" value="approval"
+                               {% if reg_mode == 'approval' %}checked{% endif %}>
+                        <span>
+                            <strong>Approbation manuelle</strong>
+                            <em>Chaque inscription est validée par un administrateur</em>
+                        </span>
+                    </label>
+                    <button type="submit" class="btn btn-primary btn-sm" style="margin-top:1.25rem">
+                        <i class="fa-solid fa-floppy-disk"></i> Enregistrer
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        {% if pending_users %}
+        <div class="admin-section-header" style="margin-top:2.5rem">
+            <h3>Inscriptions en attente <span class="admin-count-badge">{{ pending_users | length }}</span></h3>
+            <p>Ces utilisateurs attendent une approbation pour accéder à la plateforme.</p>
+        </div>
+        <div class="admin-table-wrap">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Utilisateur</th>
+                        <th>Prénom Nom</th>
+                        <th>Email</th>
+                        <th>Rôle familial</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pu in pending_users %}
+                    <tr>
+                        <td>
+                            <span class="member-avatar small">{{ pu['username'][0] | upper }}</span>
+                            {{ pu['username'] }}
+                        </td>
+                        <td>{{ pu['firstname'] }} {{ pu['lastname'] }}</td>
+                        <td class="text-muted">{{ pu['email'] }}</td>
+                        <td class="text-muted">{{ pu['member_type'] }}</td>
+                        <td class="admin-actions">
+                            <form action="/admin/user/{{ pu['username'] }}/approve" method="post" style="display:inline">
+                                <button class="btn-action btn-action--confirm-del" title="Approuver">
+                                    <i class="fa-solid fa-check"></i>
+                                </button>
+                            </form>
+                            <form action="/admin/user/{{ pu.username }}/deny" method="post" style="display:inline"
+                                  onsubmit="return confirm('Refuser et supprimer le compte de « {{ pu.username }} » ?')">
+                                <button class="btn-action btn-action--delete" title="Refuser">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- ── Tab : Rapports Avancés ───────────────────────────────── -->
+    <div class="admin-tab-content {% if active_tab == 'rapports' %}active{% endif %}" id="tab-rapports">
+        <div class="admin-section-header">
+            <h3>Rapports Avancés</h3>
+            <p>Statistiques globales et exportation des données de la plateforme</p>
+        </div>
+
+        <!-- Exports -->
+        <div class="admin-cards">
+            <div class="admin-card">
+                <div class="admin-card-icon"><i class="fa-solid fa-users"></i></div>
+                <h4>Exportation des utilisateurs</h4>
+                <p>Liste complète des utilisateurs avec niveaux, points et historique de connexions.</p>
+                <a href="/admin/export/users" class="btn btn-primary btn-sm">
+                    <i class="fa-solid fa-file-csv"></i> Télécharger CSV
+                </a>
+            </div>
+            <div class="admin-card">
+                <div class="admin-card-icon"><i class="fa-solid fa-microchip"></i></div>
+                <h4>Exportation des objets</h4>
+                <p>Parc d'objets connectés avec leur état, localisation et informations techniques.</p>
+                <a href="/admin/export/devices" class="btn btn-primary btn-sm">
+                    <i class="fa-solid fa-file-csv"></i> Télécharger CSV
+                </a>
+            </div>
+        </div>
+
+        <!-- Connection stats -->
+        <div class="report-section">
+            <h3 class="report-section-title"><i class="fa-solid fa-chart-line"></i> Taux de connexion des utilisateurs</h3>
+            <div class="admin-stats-row">
+                <div class="admin-stat-box">
+                    <div class="admin-stat-box-val">{{ full_stats.total_connections }}</div>
+                    <div class="admin-stat-box-label">Connexions totales</div>
+                </div>
+                <div class="admin-stat-box">
+                    <div class="admin-stat-box-val">{{ full_stats.total_users }}</div>
+                    <div class="admin-stat-box-label">Utilisateurs</div>
+                </div>
+                <div class="admin-stat-box">
+                    <div class="admin-stat-box-val">{{ full_stats.avg_connections }}</div>
+                    <div class="admin-stat-box-label">Moy. connexions / utilisateur</div>
+                </div>
+            </div>
+
+            {% if full_stats.top_users %}
+            <div class="admin-table-wrap" style="margin-top:1.25rem">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Utilisateur</th>
+                            <th>Niveau</th>
+                            <th>Points</th>
+                            <th>Connexions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for u in full_stats.top_users %}
+                        <tr>
+                            <td class="text-muted">{{ loop.index }}</td>
+                            <td>
+                                <a href="/member/{{ u.username }}" class="admin-user-link">
+                                    <span class="member-avatar small">{{ u.username[0] | upper }}</span>
+                                    {{ u.username }}
+                                </a>
+                            </td>
+                            <td><span class="level-badge level-{{ u.level }}">{{ u.level | level_label }}</span></td>
+                            <td>{{ "%.2f"|format(u.points) }}</td>
+                            <td class="stat-num">{{ u.connections }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Energy / device status -->
+        <div class="report-section">
+            <h3 class="report-section-title"><i class="fa-solid fa-bolt"></i> Consommation énergétique totale</h3>
+            <p class="text-muted" style="margin-bottom:1rem">Estimation basée sur le statut des objets connectés.</p>
+            <div class="admin-stats-row">
+                <div class="admin-stat-box admin-stat-box--active">
+                    <div class="admin-stat-box-val">{{ full_stats.device_status.get('actif', 0) }}</div>
+                    <div class="admin-stat-box-label">Objets actifs</div>
+                </div>
+                <div class="admin-stat-box">
+                    <div class="admin-stat-box-val">{{ full_stats.device_status.get('inactif', 0) }}</div>
+                    <div class="admin-stat-box-label">Objets inactifs</div>
+                </div>
+                <div class="admin-stat-box">
+                    <div class="admin-stat-box-val">
+                        {% set total_dev = full_stats.device_status.get('actif', 0) + full_stats.device_status.get('inactif', 0) %}
+                        {% if total_dev > 0 %}
+                            {{ ((full_stats.device_status.get('actif', 0) / total_dev) * 100) | int }}%
+                        {% else %}—{% endif %}
+                    </div>
+                    <div class="admin-stat-box-label">Taux d'activité</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Services by category -->
+        {% if full_stats.services_by_cat %}
+        <div class="report-section">
+            <h3 class="report-section-title"><i class="fa-solid fa-grid-2"></i> Services les plus utilisés</h3>
+            <div class="admin-table-wrap">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Catégorie</th>
+                            <th>Nombre de services</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for s in full_stats.services_by_cat %}
+                        <tr>
+                            <td><strong>{{ s.category or 'Autre' }}</strong></td>
+                            <td class="stat-num">{{ s.cnt }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
     </div>
 
 </div>
+
+<!-- ── Modal : Réinitialisation mot de passe ─────────────────── -->
+<div class="admin-modal-overlay" id="reset-modal-overlay" style="display:none" onclick="closeResetModal()">
+    <div class="admin-modal" onclick="event.stopPropagation()">
+        <div class="admin-modal-header">
+            <h4><i class="fa-solid fa-key"></i> Réinitialiser le mot de passe</h4>
+            <button class="admin-modal-close" onclick="closeResetModal()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <div class="admin-modal-body">
+            <p style="margin-bottom:1rem">Utilisateur : <strong id="reset-modal-username"></strong></p>
+            <label for="reset-modal-pw">Nouveau mot de passe</label>
+            <input type="password" id="reset-modal-pw" placeholder="Minimum 6 caractères" autocomplete="new-password">
+            <div id="reset-modal-error" class="alert alert-danger" style="display:none;margin-top:0.75rem"></div>
+            <div id="reset-modal-success" class="alert alert-success" style="display:none;margin-top:0.75rem">
+                <i class="fa-solid fa-circle-check"></i> Mot de passe mis à jour.
+            </div>
+        </div>
+        <div class="admin-modal-footer">
+            <button class="btn btn-outline btn-sm" onclick="closeResetModal()">Annuler</button>
+            <button class="btn btn-primary btn-sm" id="reset-modal-confirm" onclick="confirmReset()">
+                <i class="fa-solid fa-check"></i> Confirmer
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+// ── Tab switching ─────────────────────────────────────────────
+const adminTabs     = document.querySelectorAll('.admin-tab');
+const adminContents = document.querySelectorAll('.admin-tab-content');
+adminTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+        adminTabs.forEach(t => t.classList.remove('active'));
+        adminContents.forEach(c => c.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+    });
+});
+
+// ── Password reset modal ──────────────────────────────────────
+let _resetTarget = '';
+function openResetModal(username) {
+    _resetTarget = username;
+    document.getElementById('reset-modal-username').textContent = username;
+    document.getElementById('reset-modal-pw').value = '';
+    document.getElementById('reset-modal-error').style.display   = 'none';
+    document.getElementById('reset-modal-success').style.display = 'none';
+    document.getElementById('reset-modal-confirm').disabled = false;
+    document.getElementById('reset-modal-overlay').style.display = 'flex';
+}
+function closeResetModal() {
+    document.getElementById('reset-modal-overlay').style.display = 'none';
+}
+function confirmReset() {
+    const pw  = document.getElementById('reset-modal-pw').value.trim();
+    const err = document.getElementById('reset-modal-error');
+    const ok  = document.getElementById('reset-modal-success');
+    const btn = document.getElementById('reset-modal-confirm');
+    err.style.display = 'none';
+    if (pw.length < 6) {
+        err.textContent = 'Le mot de passe doit contenir au moins 6 caractères.';
+        err.style.display = 'block';
+        return;
+    }
+    btn.disabled = true;
+    fetch(`/admin/user/${_resetTarget}/reset-password`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({password: pw})
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.ok) {
+            ok.style.display = 'block';
+            setTimeout(closeResetModal, 1500);
+        } else {
+            btn.disabled = false;
+            err.textContent = data.reason === 'too_short' ? 'Mot de passe trop court.' : 'Erreur : ' + data.reason;
+            err.style.display = 'block';
+        }
+    });
+}
+
+// ── Integrity check ───────────────────────────────────────────
+function checkIntegrity() {
+    const btn    = document.getElementById('btn-integrity');
+    const result = document.getElementById('integrity-result');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Vérification…';
+    fetch('/admin/integrity')
+        .then(r => r.json())
+        .then(data => {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i> Relancer';
+            result.style.display = 'block';
+            if (data.ok) {
+                result.className = 'integrity-result integrity-result--ok';
+                result.innerHTML = '<i class="fa-solid fa-circle-check"></i> Intégrité vérifiée — aucune anomalie détectée.';
+            } else {
+                const issues = data.integrity.filter(v => v !== 'ok').join(', ');
+                result.className = 'integrity-result integrity-result--error';
+                result.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> ${data.fk_violations} violation(s) de clé étrangère${issues ? ' · ' + issues : ''}.`;
+            }
+        });
+}
+</script>
 {% endblock %}

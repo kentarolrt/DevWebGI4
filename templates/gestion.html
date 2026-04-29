@@ -12,12 +12,21 @@
             <p>Gérez les objets connectés de la maison</p>
         </div>
         <div class="gestion-header-actions">
+            {% if user_level == 'expert' %}
             <a href="/gestion/reports" class="btn btn-outline btn-sm">
                 <i class="fa-solid fa-chart-bar"></i> Rapports
             </a>
             <a href="/gestion/device/add" class="btn btn-primary btn-sm">
                 <i class="fa-solid fa-plus"></i> Ajouter un objet
             </a>
+            {% else %}
+            <span class="btn btn-outline btn-sm btn-locked" title="Niveau Expert requis (30 pts)">
+                <i class="fa-solid fa-lock"></i> Rapports
+            </span>
+            <span class="btn btn-primary btn-sm btn-locked" title="Niveau Expert requis (30 pts)">
+                <i class="fa-solid fa-lock"></i> Ajouter un objet
+            </span>
+            {% endif %}
         </div>
     </div>
 
@@ -89,9 +98,15 @@
                         </span>
                     </td>
                     <td class="gestion-actions">
+                        {% if user_level == 'expert' %}
                         <a href="/gestion/device/{{ d['id'] }}/edit" class="btn-action btn-action--edit" title="Modifier">
                             <i class="fa-solid fa-pen"></i>
                         </a>
+                        {% else %}
+                        <span class="btn-action btn-action--locked" title="Niveau Expert requis (30 pts)">
+                            <i class="fa-solid fa-lock"></i>
+                        </span>
+                        {% endif %}
                         <button class="btn-action btn-action--toggle" data-id="{{ d['id'] }}"
                                 data-status="{{ d['status'] }}" title="Activer / Désactiver">
                             {% if d['status'] == 'actif' %}

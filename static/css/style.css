@@ -216,60 +216,6 @@ header {
 }
 .btn-admin:hover { background: var(--primary-light); }
 
-/* ── Search bar (on /search page) ───────────────────────────── */
-.search-bar { display: flex; align-items: center; gap: 6px; flex: 1; max-width: 580px; }
-.search-input-wrap { position: relative; display: flex; align-items: center; flex: 1; }
-.search-input-wrap input {
-  width: 100%;
-  padding: 0.48rem 2.1rem 0.48rem 0.9rem;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: var(--bg);
-  font-size: 0.87rem;
-  transition: 0.2s;
-}
-.search-input-wrap input:focus { background: var(--surface); border-color: var(--primary); box-shadow: 0 0 0 3px rgba(26,115,232,0.12); }
-.search-clear {
-  position: absolute;
-  right: 0.6rem;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: rgba(0,0,0,0.12);
-  color: var(--muted);
-  font-size: 0.72rem;
-  padding: 0;
-  border: none;
-  cursor: pointer;
-  transition: background 0.15s;
-}
-.search-clear:hover { background: rgba(0,0,0,0.22); }
-.search-bar select {
-  padding: 0.48rem 0.72rem;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: var(--bg);
-  font-size: 0.84rem;
-  width: auto;
-  cursor: pointer;
-  transition: 0.2s;
-}
-.search-bar select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(26,115,232,0.12); background: var(--surface); }
-.search-bar button {
-  padding: 0.48rem 1rem;
-  border-radius: 999px;
-  background: var(--primary);
-  color: var(--white);
-  font-weight: 600;
-  font-size: 0.84rem;
-  width: auto;
-  white-space: nowrap;
-  transition: background 0.2s;
-}
-.search-bar button:hover { background: var(--primary-hover); }
 
 /* ── Main content grows to push footer down ─────────────────── */
 main { flex: 1; }

@@ -8,6 +8,27 @@
 
 {% block content %}
 <div class="search-page">
+    <form action="/search" method="get" class="search-bar" id="search-form">
+        <div class="search-input-wrap">
+            <input type="text" name="q" id="search-input"
+                   placeholder="Rechercher un objet connecté…" value="{{ query }}" />
+            <button type="button" class="search-clear" id="search-clear" style="display:none"
+                    aria-label="Effacer">✕</button>
+        </div>
+        <select name="type">
+            <option value="">Tous les types</option>
+            {% for t in types %}
+            <option value="{{ t }}" {% if filter_type == t %}selected{% endif %}>{{ t | capitalize }}</option>
+            {% endfor %}
+        </select>
+        <select name="status">
+            <option value="">Tous les états</option>
+            <option value="actif"   {% if filter_status == 'actif'   %}selected{% endif %}>Actif</option>
+            <option value="inactif" {% if filter_status == 'inactif' %}selected{% endif %}>Inactif</option>
+        </select>
+        <button type="submit">Rechercher</button>
+    </form>
+
     <div class="search-header">
         {% if searched %}
         <h2>
@@ -18,8 +39,6 @@
             {% if filter_type %} · type : <strong>{{ filter_type }}</strong>{% endif %}
             {% if filter_status %} · état : <strong>{{ filter_status }}</strong>{% endif %}
         </p>
-        {% else %}
-        <h2>Rechercher un objet connecté</h2>
         {% endif %}
     </div>
 
