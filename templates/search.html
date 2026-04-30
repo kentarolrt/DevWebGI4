@@ -89,7 +89,7 @@
                 <li><strong>Pièce</strong> {{ device['room'] }}</li>
                 {% endif %}
                 <li><strong>Connectivité</strong> {{ device['connectivity'] }}</li>
-                {% if device['battery'] %}
+                {% if user and device['battery'] %}
                 <li><strong>Batterie</strong> {{ device['battery'] }}%</li>
                 {% endif %}
             </ul>

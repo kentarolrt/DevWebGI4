@@ -51,7 +51,7 @@
 
                 <li><span>Connectivité</span><strong>{{ device['connectivity'] }}</strong></li>
 
-                {% if device['battery'] %}
+                {% if user and device['battery'] %}
                 <li><span>Batterie</span><strong>{{ device['battery'] }}%</strong></li>
                 {% endif %}
             </ul>
@@ -64,7 +64,7 @@
         </div>
 
         <!-- BATTERIE -->
-        {% if device['battery'] %}
+        {% if user and device['battery'] %}
         <div class="battery-panel">
             <div class="battery-shell">
                 <div class="battery-fill" style="--battery-level: {{ device['battery'] }}%;"></div>
